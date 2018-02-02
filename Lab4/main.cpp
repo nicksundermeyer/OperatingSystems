@@ -6,16 +6,32 @@
 
 /* 
  * File:   main.cpp
- * Author: ear
+ * Author: Evan Reierson and Nick Sundermeyer
  *
- * Created on January 31, 2018, 4:47 PM
+ * Created on January 17, 2018, 5:27 PM
  */
 
-#include <MMU.h>
+#include <cstdlib>
+#include <iostream>
+#include "ProcessTrace.h"
+
+
+using namespace std;
+
+/*
+ * 
+ */
 int main(int argc, char** argv) {
-    mem::MMU mem(16);mem::Addr vaddress = 0x3000;
-    uint8_t data[] = { 'a', 'b', 'c', '\0' };
-    mem.put_bytes(vaddress, sizeof(data), data);uint8_t buffer[sizeof(data)];
-    mem.get_bytes(buffer, vaddress, sizeof(buffer));
+    
+    // make sure a text file is supplied as a command line argument
+    if (argc != 2){
+        cout << "oops, please supply the name of a text file" << endl;
+        return 1;
+    }
+    
+    ProcessTrace p(argv[1]);
+    p.execute();
+    
+    return 0;
 }
 
