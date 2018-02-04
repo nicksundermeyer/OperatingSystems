@@ -117,7 +117,8 @@ bool ProcessTrace::alloc(int size){
         cerr << "invalid size" << endl;
         return false;
     }
-    ProcessTrace::memory.resize(size);
+    //ProcessTrace::memory.resize(size);
+    ProcessTrace::memory = mem::MMU(size / 0x1000 + 1);
     return true;
 }
 
@@ -127,14 +128,16 @@ bool ProcessTrace::compareBytes(int addr, vector<uint8_t> expected_values){
         cout << " " << hex << expected_values[i] + 0;
     }
     cout << endl;
-    for (int i=0; i < expected_values.size(); i++){
-        if (expected_values[i] != ProcessTrace::memory[addr + i]){
-            cout << "compare error at address " << hex << addr + i;
-            cout << ", expected " << hex << expected_values[i] + 0;
-            cout << ", actual is " << hex << ProcessTrace::memory[addr + i] + 0;
-            cout << endl;
-        }
-    }
+    
+//    for (int i=0; i < expected_values.size(); i++){
+//        if (expected_values[i] != ProcessTrace::memory[addr + i]){
+//            cout << "compare error at address " << hex << addr + i;
+//            cout << ", expected " << hex << expected_values[i] + 0;
+//            cout << ", actual is " << hex << ProcessTrace::memory[addr + i] + 0;
+//            cout << endl;
+//        }
+//    }
+    
     
 }
 bool ProcessTrace::putBytes(int addr, vector<uint8_t> values){
@@ -143,9 +146,10 @@ bool ProcessTrace::putBytes(int addr, vector<uint8_t> values){
         cout << " " << hex << values[i] + 0;
     }
     cout << endl;
-    for (int i=0; i < values.size(); i++){
-        ProcessTrace::memory[addr + i] = values[i];
-    }
+//    for (int i=0; i < values.size(); i++){
+//        ProcessTrace::memory[addr + i] = values[i];
+//    }
+    ProcessTrace::memory.put_bytes(addr, values.size(), &values);
     return true;
 }
 

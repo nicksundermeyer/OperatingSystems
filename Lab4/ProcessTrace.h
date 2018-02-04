@@ -19,6 +19,7 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <MMU.h>
 
 using namespace std;
 
@@ -117,7 +118,8 @@ private:
     
     // member variables
     ifstream file;
-    vector<uint8_t> memory; 
+    // vector<uint8_t> memory; 
+    mem::MMU memory;
     
 };
 
