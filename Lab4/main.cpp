@@ -30,7 +30,8 @@ int main(int argc, char** argv) {
 //    }
     
     //ProcessTrace p(argv[1]);
-    ProcessTrace p("trace1.txt");
+    ProcessTrace p;
+    p = ProcessTrace("trace1.txt");
     p.execute();
     
     
