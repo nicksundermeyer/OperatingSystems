@@ -126,7 +126,7 @@ bool ProcessTrace::alloc(int size){
     } else {
         page_size = size / 0x1000 + 1;
     }
-    mem::MMU memory(page_size);
+    memory =  new mem::MMU(page_size);
     
     return true;
 }
