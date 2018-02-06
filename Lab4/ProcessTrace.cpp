@@ -13,12 +13,12 @@
 
 #include "ProcessTrace.h"
 
-ProcessTrace::ProcessTrace(string file_name) {
+ProcessTrace::ProcessTrace(std::string file_name) {
     file.open(file_name);
     
     // make sure file read is valid
     if (!file){
-        cerr << "cannot open file" << endl;
+        std::cerr << "cannot open file" << std::endl;
         exit(1);
     }
 }
@@ -28,61 +28,61 @@ ProcessTrace::~ProcessTrace() {
 }
 
 bool ProcessTrace::execute(){
-    string current_line;
+    std::string current_line;
     int line_number = 1;
     while (getline(file, current_line)){
-        istringstream iss(current_line);
-        cout << dec << line_number << ':';
+        std::istringstream iss(current_line);
+        std::cout << std::dec << line_number << ':';
         parseCommand(iss);
         line_number ++;
     }
 }
 
-void ProcessTrace::parseCommand(istringstream& iss){
-    string command;
+void ProcessTrace::parseCommand(std::istringstream& iss){
+    std::string command;
     iss >> command;
 
     if (command == "alloc"){
         int size;
 
-        iss >> hex >> size;
+        iss >> std::hex >> size;
 
         ProcessTrace::alloc(size);
 
     } else if (command == "compare"){
-        int addr;
-        vector<uint8_t> expected_values;
+        uint32_t addr;
+        std::vector<uint8_t> expected_values;
 
-        iss >> hex >> addr;
+        iss >> std::hex >> addr;
         
         int v;
-        while(iss >> hex >> v){
+        while(iss >> std::hex >> v){
             expected_values.push_back(v);
         }
 
         ProcessTrace::compareBytes(addr, expected_values);
 
     } else if (command == "put"){
-        int addr;
-        vector<uint8_t> values;
+        uint32_t addr;
+        std::vector<uint8_t> values;
 
-        iss >> hex >> addr;
+        iss >> std::hex >> addr;
         
         int v;
-        while(iss >> hex >> v){
+        while(iss >> std::hex >> v){
             values.push_back(v);
         }
         
         ProcessTrace::putBytes(addr, values);
 
     } else if (command == "fill"){
-        int addr;
+        uint32_t addr;
         int count;
         int value;
 
-        iss >> hex >> addr;
-        iss >> hex >> count;
-        iss >> hex >> value;
+        iss >> std::hex >> addr;
+        iss >> std::hex >> count;
+        iss >> std::hex >> value;
 
         ProcessTrace::fillBytes(addr, count, value);
 
@@ -91,54 +91,55 @@ void ProcessTrace::parseCommand(istringstream& iss){
         int src_addr;
         int count;
 
-        iss >> hex >> dest_addr;
-        iss >> hex >> src_addr;
-        iss >> hex >> count;
+        iss >> std::hex >> dest_addr;
+        iss >> std::hex >> src_addr;
+        iss >> std::hex >> count;
 
         ProcessTrace::copyBytes(dest_addr, src_addr, count);
 
     } else if (command == "dump"){
-        int addr;
+        uint32_t addr;
         int count;
 
-        iss >> hex >> addr;
-        iss >> hex >> count;
+        iss >> std::hex >> addr;
+        iss >> std::hex >> count;
         
         ProcessTrace::dumpBytes(addr, count);
 
     } else {
-        cerr << "oops, unknown command" << endl;
+        std::cerr << "oops, unknown command" << std::endl;
     }
 }
 
 bool ProcessTrace::alloc(int size){
-    cout << "alloc " << hex << size << endl;
+    std::cout << "alloc " << std::hex << size << std::endl;
     if (size < 0){
-        cerr << "invalid size" << endl;
+        std::cerr << "invalid size" << std::endl;
         return false;
     }
     //ProcessTrace::memory.resize(size);
     
     // check this logic nick
-    int page_size;
+    uint32_t page_size;
     if (size % 0x1000 == 0){
         page_size = size / 0x1000;
     } else {
         page_size = size / 0x1000 + 1;
     }
     
-    ProcessTrace::memory = mem::MMU(page_size);
+    mem::MMU memory(page_size);
+    
     return true;
 }
 
-bool ProcessTrace::compareBytes(int addr, vector<uint8_t> expected_values){
-    cout << "compare " << hex << addr;
+bool ProcessTrace::compareBytes(uint32_t addr, std::vector<uint8_t> expected_values){
+    std::cout << "compare " << std::hex << addr;
     for (int i=0; i < expected_values.size(); i++){
-        cout << " " << hex << expected_values[i] + 0;
+        std::cout << " " << std::hex << expected_values[i] + 0;
     }
-    cout << endl;
-    vector<uint8_t> actual_values;
-    ProcessTrace::memory.get_bytes(&actual_values, addr, expected_values.size());
+    std::cout << std::endl;
+    std::vector<uint8_t> actual_values;
+    memory.get_bytes(&actual_values[0], addr, (uint32_t)expected_values.size());
 //    for (int i=0; i < expected_values.size(); i++){
 //        if (expected_values[i] != ProcessTrace::memory[addr + i]){
 //            cout << "compare error at address " << hex << addr + i;
@@ -150,44 +151,44 @@ bool ProcessTrace::compareBytes(int addr, vector<uint8_t> expected_values){
     
     for (int i=0; i < expected_values.size(); i++){
         if (expected_values[i] != actual_values[i]){
-            cout << "compare error at address " << hex << addr + i;
-            cout << ", expected " << hex << expected_values[i] + 0;
-            cout << ", actual is " << hex << ProcessTrace::memory[addr + i] + 0;
-            cout << endl;
+            std::cout << "compare error at address " << std::hex << addr + i;
+            std::cout << ", expected " << std::hex << expected_values[i] + 0;
+            std::cout << ", actual is " << std::hex << actual_values[i];
+            std::cout << std::endl;
         }
     }
     
     
 }
-bool ProcessTrace::putBytes(int addr, vector<uint8_t> values){
-    cout << "put " << hex << addr;
+bool ProcessTrace::putBytes(uint32_t addr, std::vector<uint8_t> values){
+    std::cout << "put " << std::hex << addr;
     for (int i=0; i < values.size(); i++){
-        cout << " " << hex << values[i] + 0;
+        std::cout << " " << std::hex << values[i] + 0;
     }
-    cout << endl;
+    std::cout << std::endl;
 //    for (int i=0; i < values.size(); i++){
 //        ProcessTrace::memory[addr + i] = values[i];
 //    }
-    ProcessTrace::memory.put_bytes(addr, values.size(), &values);
+    memory.put_bytes(addr, (uint32_t)values.size(), &values[0]);
     return true;
 }
 
-bool ProcessTrace::fillBytes(int addr, int count, int value){
-    cout << "fill " << hex << addr << " ";
-    cout << hex << count << " " << hex << value << endl;
+bool ProcessTrace::fillBytes(uint32_t addr, uint32_t count, uint32_t value){
+    std::cout << "fill " << std::hex << addr << " ";
+    std::cout << std::hex << count << " " << std::hex << value << std::endl;
 //    for (int i=0; i < count; i++){
 //        ProcessTrace::memory[addr + i] = value;
 //    }
     
-    vector<uint8_t> tmp;
-    tmp.resize(count, value)
+    std::vector<uint8_t> tmp;
+    tmp.resize(count, value);
     
-    ProcessTrace::memory.put_bytes(addr, count, &tmp);
+    memory.put_bytes(addr, count, &tmp[0]);
 }
 
-bool ProcessTrace::copyBytes(int dest_addr, int src_addr, int count){
-    cout << "copy " << hex << dest_addr << " ";
-    cout << hex << src_addr << " " << hex << count << endl;
+bool ProcessTrace::copyBytes(uint32_t dest_addr, uint32_t src_addr, uint32_t count){
+    std::cout << "copy " << std::hex << dest_addr << " ";
+    std::cout << std::hex << src_addr << " " << std::hex << count << std::endl;
     
 //    vector<uint8_t> cp;
 //    for (int i=0; i < count; i++){
@@ -197,16 +198,16 @@ bool ProcessTrace::copyBytes(int dest_addr, int src_addr, int count){
 //    for (int i=0; i < count; i++){
 //        ProcessTrace::memory[dest_addr + i] = cp[i];
 //    }
-    vector<uint8_t> cp;
-    ProcessTrace::memory.get_bytes(&cp, src_addr, count);
-    ProcessTrace::memory.put_bytes(dest_addr, count, &cp);
+    std::vector<uint8_t> cp;
+    memory.get_bytes(&cp[0], src_addr, count);
+    memory.put_bytes(dest_addr, count, &cp[0]);
 }
 
-bool ProcessTrace::dumpBytes(int addr, int count){
-    cout << "dump " << hex << addr << " " << hex << count << endl;
-    cout << addr;
+bool ProcessTrace::dumpBytes(uint32_t addr, uint32_t count){
+    std::cout << "dump " << std::hex << addr << " " << std::hex << count << std::endl;
+    std::cout << addr;
         
-    stringstream line;
+    std::stringstream line;
     
 //    for(int i = 0; i < count; i++){
 //        if(i % 16 == 0){
@@ -224,8 +225,8 @@ bool ProcessTrace::dumpBytes(int addr, int count){
 //    string s = line.str();
 //    cout << s << endl;
     
-    vector<uint8_t> tmp;
-    ProcessTrace::memory.get_bytes(tmp, addr, count);
+    std::vector<uint8_t> tmp;
+    memory.get_bytes(&tmp[0], addr, count);
     
     for(int i = 0; i < count; i++){
         if(i % 16 == 0){
@@ -238,9 +239,9 @@ bool ProcessTrace::dumpBytes(int addr, int count){
             line << "0";
         }
 
-        line << hex << tmp[i] + 0;
+        line << std::hex << tmp[i] + 0;
     }
-    string s = line.str();
-    cout << s << endl;
+    std::string s = line.str();
+    std::cout << s << std::endl;
 
 }

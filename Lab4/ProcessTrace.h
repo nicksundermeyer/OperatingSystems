@@ -21,12 +21,10 @@
 #include <sstream>
 #include <MMU.h>
 
-using namespace std;
-
 class ProcessTrace {
 public:
     // constructor
-    ProcessTrace(string trace_file);
+    ProcessTrace(std::string trace_file);
     
     // destructor
     virtual ~ProcessTrace();
@@ -66,7 +64,7 @@ private:
     * @param expected_values    list of bytes expected to be in memory
     * @return                   boolean success    
     */
-    bool compareBytes(int addr, vector<uint8_t> expected_values);
+    bool compareBytes(uint32_t addr, std::vector<uint8_t> expected_values);
     
     /**
     * putBytes - store values in memory starting at the specified address
@@ -75,7 +73,7 @@ private:
     * @param values     values to put in memory
     * @return           boolean success
     */    
-    bool putBytes(int addr, vector<uint8_t> values);
+    bool putBytes(uint32_t addr, std::vector<uint8_t> values);
     
     /**
     * fillBytes - fill memory with count instances of value starting at address
@@ -85,7 +83,7 @@ private:
     * @param value      value to store 
     * @return           boolean success
     */    
-    bool fillBytes(int addr, int count, int value);
+    bool fillBytes(uint32_t addr, uint32_t count, uint32_t value);
     
     /**
     * copyBytes - copy count bytes from src_addr to dest_addr
@@ -95,7 +93,7 @@ private:
     * @param count          number of bytes to copy
     * @return               boolean success
     */    
-    bool copyBytes(int dest_addr, int src_addr, int count);
+    bool copyBytes(uint32_t dest_addr, uint32_t src_addr, uint32_t count);
     
     /**
     * dumpBytes - write count bytes to standard output starting at address
@@ -104,7 +102,7 @@ private:
     * @param count      number of bytes to output
     * @return           boolean success;
     */    
-    bool dumpBytes(int addr, int count);
+    bool dumpBytes(uint32_t addr, uint32_t count);
     
     /**
     * parseCommand - parse line of trace file and execute appropriate method
@@ -112,13 +110,13 @@ private:
     * @param iss        istringstream to parse
     * @param count      number of bytes to output
     */  
-    void parseCommand(istringstream& iss);
+    void parseCommand(std::istringstream& iss);
     
     
     
     // member variables
-    ifstream file;
-    // vector<uint8_t> memory; 
+    std::ifstream file;
+    // vector<uint8_t> memory;
     mem::MMU memory;
     
 };
