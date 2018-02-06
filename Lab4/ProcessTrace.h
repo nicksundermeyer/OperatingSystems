@@ -117,7 +117,7 @@ private:
     // member variables
     std::ifstream file;
     // vector<uint8_t> memory;
-    mem::MMU memory;
+    mem::MMU*  memory;
     
 };
 

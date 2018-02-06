@@ -126,7 +126,6 @@ bool ProcessTrace::alloc(int size){
     } else {
         page_size = size / 0x1000 + 1;
     }
-    
     mem::MMU memory(page_size);
     
     return true;
@@ -139,7 +138,7 @@ bool ProcessTrace::compareBytes(uint32_t addr, std::vector<uint8_t> expected_val
     }
     std::cout << std::endl;
     std::vector<uint8_t> actual_values;
-    memory.get_bytes(&actual_values[0], addr, (uint32_t)expected_values.size());
+    memory->get_bytes(&actual_values[0], addr, (uint32_t)expected_values.size());
 //    for (int i=0; i < expected_values.size(); i++){
 //        if (expected_values[i] != ProcessTrace::memory[addr + i]){
 //            cout << "compare error at address " << hex << addr + i;
@@ -169,7 +168,7 @@ bool ProcessTrace::putBytes(uint32_t addr, std::vector<uint8_t> values){
 //    for (int i=0; i < values.size(); i++){
 //        ProcessTrace::memory[addr + i] = values[i];
 //    }
-    memory.put_bytes(addr, (uint32_t)values.size(), &values[0]);
+    memory->put_bytes(addr, (uint32_t)values.size(), &values[0]);
     return true;
 }
 
@@ -183,7 +182,7 @@ bool ProcessTrace::fillBytes(uint32_t addr, uint32_t count, uint32_t value){
     std::vector<uint8_t> tmp;
     tmp.resize(count, value);
     
-    memory.put_bytes(addr, count, &tmp[0]);
+    memory->put_bytes(addr, count, &tmp[0]);
 }
 
 bool ProcessTrace::copyBytes(uint32_t dest_addr, uint32_t src_addr, uint32_t count){
@@ -199,8 +198,8 @@ bool ProcessTrace::copyBytes(uint32_t dest_addr, uint32_t src_addr, uint32_t cou
 //        ProcessTrace::memory[dest_addr + i] = cp[i];
 //    }
     std::vector<uint8_t> cp;
-    memory.get_bytes(&cp[0], src_addr, count);
-    memory.put_bytes(dest_addr, count, &cp[0]);
+    memory->get_bytes(&cp[0], src_addr, count);
+    memory->put_bytes(dest_addr, count, &cp[0]);
 }
 
 bool ProcessTrace::dumpBytes(uint32_t addr, uint32_t count){
@@ -226,7 +225,7 @@ bool ProcessTrace::dumpBytes(uint32_t addr, uint32_t count){
 //    cout << s << endl;
     
     std::vector<uint8_t> tmp;
-    memory.get_bytes(&tmp[0], addr, count);
+    memory->get_bytes(&tmp[0], addr, count);
     
     for(int i = 0; i < count; i++){
         if(i % 16 == 0){
