@@ -12,13 +12,16 @@
  */
 
 #include <cstdlib>
-
+#include "Scheduler.h"
 
 /*
  * 
  */
-int main(int argc, char** argv) {
 
+int main(int argc, char** argv) {
+    
+    Scheduler s("program1_sample1.txt", 10, 10);
+    
     return 0;
 }
 

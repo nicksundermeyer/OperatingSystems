@@ -15,6 +15,10 @@
 #define SCHEDULER_H
 
 #include <string>
+#include <list>
+#include <fstream>
+#include <iostream>
+#include <sstream>
 
 class Scheduler {
 public:
@@ -36,12 +40,16 @@ public:
     // move assignment operator
     Scheduler operator=(const Scheduler &&orig) = delete;
     
-private:
+    void simulate_RR();
+    void simulate_SPN();
     
+private:
     struct Process{
         std::string name;
+        std::string status;
         uint32_t arrival_time;
         uint32_t total_time;
+        uint32_t processed_time;
         uint32_t block_interval;
     };
     
@@ -49,9 +57,7 @@ private:
     uint32_t block_duration;
     uint32_t time_slice;
     
-    std::list<Process> ready;
-    std::list<Process> blocked;
-    
+    std::list<Process> processes;
 };
 
 #endif /* SCHEDULER_H */
