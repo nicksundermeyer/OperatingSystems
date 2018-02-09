@@ -24,13 +24,12 @@ using namespace std;
 int main(int argc, char** argv) {
     
     // make sure a text file is supplied as a command line argument
-//    if (argc != 2){
-//        cout << "oops, please supply the name of a text file" << endl;
-//        return 1;
-//    }
+    if (argc != 2){
+        cout << "oops, please supply the name of a text file" << endl;
+        return 1;
+    }
     
-    //ProcessTrace p(argv[1]);
-    ProcessTrace p("trace1.txt");
+    ProcessTrace p(argv[1]);
     p.execute();
     
     

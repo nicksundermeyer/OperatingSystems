@@ -117,9 +117,7 @@ bool ProcessTrace::alloc(int size){
         std::cerr << "invalid size" << std::endl;
         return false;
     }
-    //ProcessTrace::memory.resize(size);
     
-    // check this logic nick
     uint32_t page_size;
     if (size % 0x1000 == 0){
         page_size = size / 0x1000;
@@ -137,22 +135,14 @@ bool ProcessTrace::compareBytes(uint32_t addr, std::vector<uint8_t> expected_val
         std::cout << " " << std::hex << expected_values[i] + 0;
     }
     std::cout << std::endl;
-    std::vector<uint8_t> actual_values;
-    memory->get_bytes(&actual_values[0], addr, (uint32_t)expected_values.size());
-//    for (int i=0; i < expected_values.size(); i++){
-//        if (expected_values[i] != ProcessTrace::memory[addr + i]){
-//            cout << "compare error at address " << hex << addr + i;
-//            cout << ", expected " << hex << expected_values[i] + 0;
-//            cout << ", actual is " << hex << ProcessTrace::memory[addr + i] + 0;
-//            cout << endl;
-//        }
-//    }
     
     for (int i=0; i < expected_values.size(); i++){
-        if (expected_values[i] != actual_values[i]){
+        uint8_t b;
+        memory->get_byte(&b, addr + i);
+        if (expected_values[i] != b){
             std::cout << "compare error at address " << std::hex << addr + i;
             std::cout << ", expected " << std::hex << expected_values[i] + 0;
-            std::cout << ", actual is " << std::hex << actual_values[i];
+            std::cout << ", actual is " << std::hex << b + 0;
             std::cout << std::endl;
         }
     }
@@ -165,9 +155,7 @@ bool ProcessTrace::putBytes(uint32_t addr, std::vector<uint8_t> values){
         std::cout << " " << std::hex << values[i] + 0;
     }
     std::cout << std::endl;
-//    for (int i=0; i < values.size(); i++){
-//        ProcessTrace::memory[addr + i] = values[i];
-//    }
+    
     memory->put_bytes(addr, (uint32_t)values.size(), &values[0]);
     return true;
 }
@@ -175,9 +163,6 @@ bool ProcessTrace::putBytes(uint32_t addr, std::vector<uint8_t> values){
 bool ProcessTrace::fillBytes(uint32_t addr, uint32_t count, uint32_t value){
     std::cout << "fill " << std::hex << addr << " ";
     std::cout << std::hex << count << " " << std::hex << value << std::endl;
-//    for (int i=0; i < count; i++){
-//        ProcessTrace::memory[addr + i] = value;
-//    }
     
     std::vector<uint8_t> tmp;
     tmp.resize(count, value);
@@ -189,17 +174,12 @@ bool ProcessTrace::copyBytes(uint32_t dest_addr, uint32_t src_addr, uint32_t cou
     std::cout << "copy " << std::hex << dest_addr << " ";
     std::cout << std::hex << src_addr << " " << std::hex << count << std::endl;
     
-//    vector<uint8_t> cp;
-//    for (int i=0; i < count; i++){
-//        cp.push_back(ProcessTrace::memory[src_addr + i]);
-//    }
-//    
-//    for (int i=0; i < count; i++){
-//        ProcessTrace::memory[dest_addr + i] = cp[i];
-//    }
-    std::vector<uint8_t> cp;
-    memory->get_bytes(&cp[0], src_addr, count);
-    memory->put_bytes(dest_addr, count, &cp[0]);
+    for (int i=0; i < count; i++){
+        uint8_t b;
+        memory->get_byte(&b , src_addr + i);
+        memory->put_byte(dest_addr + i, &b);
+    }
+    
 }
 
 bool ProcessTrace::dumpBytes(uint32_t addr, uint32_t count){
@@ -207,38 +187,22 @@ bool ProcessTrace::dumpBytes(uint32_t addr, uint32_t count){
     std::cout << addr;
         
     std::stringstream line;
+    uint8_t b;
     
-//    for(int i = 0; i < count; i++){
-//        if(i % 16 == 0){
-//            line << '\n';
-//        }
-//        
-//        line << " ";
-//
-//        if(ProcessTrace::memory[addr+i] < 16 ){
-//            line << "0";
-//        }
-//
-//        line << hex << ProcessTrace::memory[addr+i] + 0;
-//    }
-//    string s = line.str();
-//    cout << s << endl;
-    
-    std::vector<uint8_t> tmp;
-    memory->get_bytes(&tmp[0], addr, count);
     
     for(int i = 0; i < count; i++){
+        memory->get_byte(&b, addr + i);
         if(i % 16 == 0){
             line << '\n';
         }
         
         line << " ";
 
-        if(tmp[i] < 16 ){
+        if(b < 16 ){
             line << "0";
         }
 
-        line << std::hex << tmp[i] + 0;
+        line << std::hex << b + 0;
     }
     std::string s = line.str();
     std::cout << s << std::endl;
