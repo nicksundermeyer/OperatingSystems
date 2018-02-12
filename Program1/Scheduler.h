@@ -46,7 +46,6 @@ public:
 private:
     struct Process{
         std::string name;
-        std::string status;
         uint32_t arrival_time;
         uint32_t total_time;
         uint32_t processed_time;
@@ -58,6 +57,8 @@ private:
     uint32_t time_slice;
     
     std::list<Process> processes;
+    std::list<Process> ready;
+    std::list<Process> blocked;
 };
 
 #endif /* SCHEDULER_H */

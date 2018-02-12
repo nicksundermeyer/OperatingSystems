@@ -43,7 +43,6 @@ Scheduler::Scheduler(std::string file_name, uint32_t block_duration, uint32_t ti
         
         Process p;
         p.name = name;
-        p.status = "awaiting arrival";
         p.arrival_time = arrival_time;
         p.total_time = total_time;
         p.block_interval = block_interval;
@@ -69,13 +68,10 @@ void Scheduler::simulate_RR(){
         // add to ready upon arrival
         std::list<Process>::iterator it;
         for (it=processes.begin(); it!=processes.end(); ++it){
-            // if ()
+            //if ()
         }
         
-        /*
-         * should we keep blocked/ready processes in different lists
-         * or store a status attribute and keep them in one list?
-         */
+       
         
     }
 }
