@@ -53,6 +53,7 @@ private:
         uint32_t processed_time;
         uint32_t block_interval;
         uint32_t blocked_time;
+        uint32_t turnaround_time;
     };
     
     std::string file_name;
