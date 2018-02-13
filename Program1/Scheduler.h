@@ -45,12 +45,14 @@ public:
     void simulate_SPN();
     
 private:
+    
     struct Process{
         std::string name;
         uint32_t arrival_time;
         uint32_t total_time;
         uint32_t processed_time;
         uint32_t block_interval;
+        uint32_t blocked_time;
     };
     
     std::string file_name;
