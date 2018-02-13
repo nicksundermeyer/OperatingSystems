@@ -19,6 +19,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <vector>
 
 class Scheduler {
 public:
@@ -56,9 +57,9 @@ private:
     uint32_t block_duration;
     uint32_t time_slice;
     
-    std::list<Process> processes;
-    std::list<Process> ready;
-    std::list<Process> blocked;
+    std::vector<Process> processes;
+    std::vector<Process> ready;
+    std::vector<Process> blocked;
 };
 
 #endif /* SCHEDULER_H */
