@@ -90,6 +90,7 @@ void Scheduler::simulate_SPN()
 {
     uint32_t time=0;
     bool processing = false; // whether a process is currently using the CPU
+    bool idle = false;
     bool running = true;
     float turnaround_time = 0;
     std::vector<Process> process = processes; // local copy of processes to allow removing processes without messing up other scheduler
@@ -106,68 +107,118 @@ void Scheduler::simulate_SPN()
     // time loop
     while(running)
     {
-        // if there is not already a process running, find a new process to run
-        if(!processing)
-        {
-	    if(!ready.empty())
+//	if(time > 140)
+//	    printVector(ready);
+	
+	if(!idle)
+	{
+	    // if there is not already a process running, find a new process to run
+	    if(!processing)
 	    {
-		// check through currently ready processes for shortest
-		float shortest_process = ready[0].block_interval;
-		int shortest_process_index = 0;
-		for(int i=0; i<ready.size(); i++)
+		if(!ready.empty())
 		{
-		    if(ready[i].block_interval < shortest_process)
+		    // check through currently ready processes for shortest
+		    float shortest_process = std::min(ready[0].block_interval, ready[0].total_time-ready[0].processed_time);
+		    int shortest_process_index = 0;
+		    for(int i=0; i<ready.size(); i++)
 		    {
-			shortest_process = ready[i].block_interval;
-			shortest_process_index = i;
+//			if(time > 180)
+//			{
+//			    std::cout << ready[i].name << " " << ready[i].block_interval << std::endl;
+//			}
+				
+			if(std::min(ready[i].block_interval, ready[i].total_time-ready[i].processed_time) < shortest_process)
+			{
+			    shortest_process = std::min(ready[0].block_interval, ready[i].total_time-ready[i].processed_time);
+			    shortest_process_index = i;
+			}
+		    }
+		    
+		    processing = true;
+
+		    // set currently running process, and remove it from the ready list
+		    current_process = ready[shortest_process_index];
+		    ready.erase(ready.begin() + shortest_process_index);
+		    current_interval = 0;
+		}
+		else
+		{
+		    idle = true;
+		    current_interval = 0;
+		}
+	    }
+	    else
+	    {
+		// if process is done, remove it and look for new process
+		if(current_process.processed_time >= current_process.total_time)
+		{
+		    std::cout << " " << time-current_interval << "  " << current_process.name << "   " << current_interval << "    T" << std::endl;
+		    processing = false;
+		    turnaround_time += (time-current_process.arrival_time);
+		}
+
+		// if past block interval duration, put the process in the blocked list and look for new process
+		else if(current_interval >= current_process.block_interval)
+		{
+		    processing = false;
+		    current_process.blocked_time = 0;
+		    blocked.push_back(current_process);
+		    std::cout << " " << time-current_interval << "  " << current_process.name << "   " << current_interval << "    B" << std::endl;
+		}
+
+		// update current process time if there is one running
+		current_process.processed_time++;
+		current_interval++;
+
+		if(processing)
+		{
+		    time++;
+		    // iterate through blocked processes to check if they should be readied
+		    for(int i=0; i<blocked.size(); i++)
+		    {
+			if(blocked[i].blocked_time >= block_duration)
+			{
+			    ready.push_back(blocked[i]);
+			    blocked.erase(blocked.begin() + i);
+			}
+			
+			blocked[i].blocked_time++;
 		    }
 		}
-		processing = true;
-
-		// set currently running process, and remove it from the ready list
-		current_process = ready[shortest_process_index];
-		ready.erase(ready.begin() + shortest_process_index);
-		current_interval = 0;
 	    }
-        }
+	}
         else
-        {
-            // if process is done, remove it and look for new process
-            if(current_process.processed_time >= current_process.total_time)
-            {
-                std::cout << "  " << time-current_interval << " " << current_process.name << "   " << current_interval << "    T" << std::endl;
-                processing = false;
-		turnaround_time += (time-current_process.arrival_time);
-            }
-            // if past block interval duration, put the process in the blocked list and look for new process
-            else if(current_interval >= current_process.block_interval)
-            {
-                processing = false;
-                current_process.blocked_time = 0;
-                blocked.push_back(current_process);
-                std::cout << "  " << time-current_interval << " " << current_process.name << "   " << current_interval << "    B" << std::endl;
-            }
-
-            // update current process time if there is one running
-            current_process.processed_time++;
-            current_interval++;
-	    
-	    if(processing)
-	    {
-		time++;
-	    }
-        }
-	
-	// iterate through blocked processes to check if they should be readied
-	for(int i=0; i<blocked.size(); i++)
 	{
-	    blocked[i].blocked_time++;
-
-	    if(blocked[i].blocked_time >= block_duration)
+	    // idle
+	    // iterate through blocked processes and find the shortest remaining block
+	    int shortest_block = block_duration - blocked[0].blocked_time;
+	    int shortest_block_index = 0;
+	    for(int i=0; i<blocked.size(); i++)
 	    {
-		ready.push_back(blocked[i]);
-		blocked.erase(blocked.begin() + i);
+		if((block_duration - blocked[i].blocked_time) < shortest_block)
+		{
+		    shortest_block = block_duration - blocked[i].blocked_time;
+		    shortest_block_index = i;
+		}
 	    }
+	    
+	    // add idle time to all other blocks
+	    for(int i=0; i<blocked.size(); i++)
+	    {
+		blocked[i].blocked_time += shortest_block;
+	    }
+	    
+	    // add idle time to time
+	    time += shortest_block;
+	    
+	    // return process to ready
+	    ready.push_back(blocked[shortest_block_index]);
+	    
+	    // print out to console
+	    std::cout << " " << time-shortest_block << "   <idle>  " << shortest_block << std::endl;
+	    
+	    // return from idle state
+	    idle = false;
 	}
         
         // iterate through processes to add processes when they arrive
@@ -186,4 +237,13 @@ void Scheduler::simulate_SPN()
             running = false;
         }
     }
+}
+
+void Scheduler::printVector(std::vector<Process> v)
+{
+    for(int i=0; i<v.size(); i++)
+    {
+	std::cout << v[i].name << " " << v[i].block_interval << " ";
+    }
+    std::cout << std::endl;
 }

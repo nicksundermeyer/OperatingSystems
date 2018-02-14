@@ -63,6 +63,8 @@ private:
     std::vector<Process> processes;
     std::vector<Process> ready;
     std::vector<Process> blocked;
+    
+    void printVector(std::vector<Process> v);
 };
 
 #endif /* SCHEDULER_H */
