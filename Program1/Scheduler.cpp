@@ -61,19 +61,25 @@ Scheduler::~Scheduler() {
 void Scheduler::simulate_RR(){
     std::cout << "RR " << block_duration << " " << time_slice << std::endl;
     Process current_process;
+    std::vector<Process> complete;
     
-    int interval = -1;
+    
+    int interval = 0;
     bool idle = false;
+    bool running = true;
+    uint32_t time = 1;
     
-    for(uint32_t time=0; time<300; time++){
+    while(running){
         interval++;
+        
         // add process to ready upon arrival
         for(int i=0; i<processes.size(); i++){
-            if (processes[i].arrival_time == time){
+            if (processes[i].arrival_time == time - 1){
                 ready.insert(ready.begin(), processes[i]);
             }
         }
         
+        // manage blocked list
         for (int i=0; i<blocked.size(); i++){
             // block for one time unit
             blocked[i].blocked_time += 1;
@@ -85,27 +91,31 @@ void Scheduler::simulate_RR(){
                 blocked.erase(blocked.begin() + i);
             }
         }
-//        std::cout << 'r';
-//        for (int i=0; i<ready.size(); i++){
-//            std::cout << ready[i].name;
-//        }
-//        std::cout << std::endl;
         
         if(!ready.empty()){
             
             current_process = ready.back();
+
+            if (!idle){
+                // process for one time unit
+                current_process.processed_time++;
+                ready.pop_back();
+                ready.push_back(current_process);
+            }
             
-            
-            // process for one time unit
-            current_process.processed_time++;
-            //interval++;
-            ready.pop_back();
-            ready.push_back(current_process);
-            
-//            std::cout << current_process.processed_time
-//                    << " " << current_process.block_interval << std::endl;
-            
-            if (current_process.processed_time == current_process.total_time){
+            // no processes in ready
+            if(idle){
+                std::cout 
+                << " "
+                << time - interval << '\t'
+                << "<idle>" << '\t'
+                << interval << '\t'
+                << 'I' << std::endl;
+                idle = false;
+                interval = 0;
+                
+            // process terminates
+            } else if (current_process.processed_time == current_process.total_time){
                 std::cout 
                 << " "
                 << time - interval << '\t'
@@ -115,6 +125,11 @@ void Scheduler::simulate_RR(){
                 
                 ready.pop_back();
                 interval = 0;
+                
+                current_process.turnaround_time = time - current_process.arrival_time;
+                complete.push_back(current_process);
+            
+            // process blocks for IO 
             } else if(current_process.processed_time % current_process.block_interval == 0){
                 std::cout 
                 << " "
@@ -126,7 +141,10 @@ void Scheduler::simulate_RR(){
                 ready.pop_back();
                 blocked.insert(blocked.begin(), current_process);
                 interval = 0;
-            } else if(time % time_slice == 0 && time != 0){
+            
+            // process preempted
+            } else if(interval % time_slice == 0){
+                
                 std::cout 
                 << " "
                 << time - interval << '\t'
@@ -137,22 +155,31 @@ void Scheduler::simulate_RR(){
                 ready.pop_back();
                 ready.insert(ready.begin(), current_process);
                 interval = 0;
-            } else if(idle){
-                std::cout 
-                << " "
-                << time - interval << '\t'
-                << "<idle>" << '\t'
-                << interval << '\t'
-                << 'I' << std::endl;
-                idle = false;
+                
             }
-            //interval ++;
         } else {
            idle = true;
             
         }
-        //interval++;
+        
+        // all processes complete
+        if (complete.size() == processes.size()){
+            double t;
+            for (int i=0; i<complete.size(); i++){
+                t += complete[i].turnaround_time;
+            }
+
+            std::cout << " "
+                    << time  << '\t'
+                    << "<done>" << '\t'
+                    << (t)/complete.size() << std::endl;
+            running = false;
+        }   
+        
+        time++;
     }
+    
+
 	
 }
 

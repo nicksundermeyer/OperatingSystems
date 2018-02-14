@@ -21,8 +21,10 @@
 int main(int argc, char** argv) {
     
     Scheduler s("program1_sample1.txt", 20, 10);
-    s.simulate_SPN();
-//    s.simulate_RR();
+    //s.simulate_SPN();
+    s.simulate_RR();
+    
+    
     
     return 0;
 }
