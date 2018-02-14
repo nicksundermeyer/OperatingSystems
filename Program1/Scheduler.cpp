@@ -59,31 +59,101 @@ Scheduler::~Scheduler() {
 }
 
 void Scheduler::simulate_RR(){
-//    std::cout << "RR " << block_duration << " " << time_slice << std::endl;
-//    Process current_process = NULL;
-//    
-//    for(uint32_t time=0; time<300; time++){
-//        
-//        // add process to ready upon arrival
-//        for(int i=0; i<processes.size(); i++){
-//            if (processes[i].arrival_time = time){
-//                ready.insert(0, processes[i]);
-//            }
-//        }  
-//        
-//        if(current_process == NULL){
-//            current_process = ready.back();
-//            ready.pop_back();
+    std::cout << "RR " << block_duration << " " << time_slice << std::endl;
+    Process current_process;
+    
+    int interval = -1;
+    bool idle = false;
+    
+    for(uint32_t time=0; time<300; time++){
+        interval++;
+        // add process to ready upon arrival
+        for(int i=0; i<processes.size(); i++){
+            if (processes[i].arrival_time == time){
+                ready.insert(ready.begin(), processes[i]);
+            }
+        }
+        
+        for (int i=0; i<blocked.size(); i++){
+            // block for one time unit
+            blocked[i].blocked_time += 1;
+            
+            // return to ready after block_duration reached
+            if (blocked[i].blocked_time == block_duration){
+                blocked[i].blocked_time = 0;
+                ready.insert(ready.begin(), blocked[i]);
+                blocked.erase(blocked.begin() + i);
+            }
+        }
+//        std::cout << 'r';
+//        for (int i=0; i<ready.size(); i++){
+//            std::cout << ready[i].name;
 //        }
-//        
-//        current_process.processed_time ++;
-//        
-//        
-//        
-//        
-//        
-//        
-//    }
+//        std::cout << std::endl;
+        
+        if(!ready.empty()){
+            
+            current_process = ready.back();
+            
+            
+            // process for one time unit
+            current_process.processed_time++;
+            //interval++;
+            ready.pop_back();
+            ready.push_back(current_process);
+            
+//            std::cout << current_process.processed_time
+//                    << " " << current_process.block_interval << std::endl;
+            
+            if (current_process.processed_time == current_process.total_time){
+                std::cout 
+                << " "
+                << time - interval << '\t'
+                << current_process.name << '\t'
+                << interval << '\t'
+                << 'T' << std::endl;
+                
+                ready.pop_back();
+                interval = 0;
+            } else if(current_process.processed_time % current_process.block_interval == 0){
+                std::cout 
+                << " "
+                << time - interval << '\t'
+                << current_process.name << '\t'
+                << interval << '\t'
+                << 'B' << std::endl;
+                    
+                ready.pop_back();
+                blocked.insert(blocked.begin(), current_process);
+                interval = 0;
+            } else if(time % time_slice == 0 && time != 0){
+                std::cout 
+                << " "
+                << time - interval << '\t'
+                << current_process.name << '\t'
+                << interval << '\t'
+                << 'S' << std::endl;
+                
+                ready.pop_back();
+                ready.insert(ready.begin(), current_process);
+                interval = 0;
+            } else if(idle){
+                std::cout 
+                << " "
+                << time - interval << '\t'
+                << "<idle>" << '\t'
+                << interval << '\t'
+                << 'I' << std::endl;
+                idle = false;
+            }
+            //interval ++;
+        } else {
+           idle = true;
+            
+        }
+        //interval++;
+    }
+	
 }
 
 void Scheduler::simulate_SPN()
