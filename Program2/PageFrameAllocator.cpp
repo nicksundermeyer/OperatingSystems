@@ -11,21 +11,31 @@
 #include <cstring>
 #include <sstream>
 
-PageFrameAllocator::PageFrameAllocator(uint32_t page_frame_count) 
-: memory(page_frame_count * kPageSize),
-        page_frames_total(page_frame_count),
+using mem::Addr;
+using mem::MMU;
+using mem::PMCB;
+
+PageFrameAllocator::PageFrameAllocator(uint32_t page_frame_count, MMU &memoryptr) 
+:	memory(memoryptr),
+	page_frames_total(page_frame_count),
         page_frames_free(page_frame_count),
         free_list_head(0)
 {
+    
+    // add page frames to free list
+    
   // Add all page frames to free list
-  for (uint32_t frame = 0; frame < page_frame_count-1; ++frame) {
-    uint32_t next = frame + 1;
-    memcpy(&memory[frame*kPageSize], &next, sizeof(uint32_t));
+  for (uint8_t frame = 0; frame < page_frame_count-1; ++frame) {
+    uint8_t next = frame + 1;
+    memory.put_bytes(frame*kPageSize, sizeof(uint8_t), &next);
+    //memcpy(&memory[frame*kPageSize], &next, sizeof(uint32_t));
   }
   
   // Last page frame has end of list marker
-  uint32_t end_list = kEndList;
-  memcpy(&memory[(page_frame_count-1)*kPageSize], &end_list, sizeof(uint32_t));
+  uint8_t end_list = kEndList;
+  memory.put_bytes((page_frame_count-1)*kPageSize, sizeof(uint8_t), &end_list);
+
+//  memcpy(&memory[(page_frame_count-1)*kPageSize], &end_list, sizeof(uint32_t));
 }
 
 bool PageFrameAllocator::Allocate(uint32_t count, 
@@ -36,7 +46,8 @@ bool PageFrameAllocator::Allocate(uint32_t count,
       page_frames.push_back(free_list_head);
       
       // De-link frame from head of free list
-      memcpy(&free_list_head, &memory[free_list_head*kPageSize], sizeof(uint32_t));
+      memory.put_bytes(&free_list_head, sizeof(uint8_t), free_list_head*kPageSize);
+//      memcpy(&free_list_head, &memory[free_list_head*kPageSize], sizeof(uint32_t));
       --page_frames_free;
     }
     return true;
@@ -53,6 +64,8 @@ bool PageFrameAllocator::Deallocate(uint32_t count,
       // Return next frame to head of free list
       uint32_t frame = page_frames.back();
       page_frames.pop_back();
+            memory.put_bytes(frame * kPageSize, sizeof(uint8_t), &free_list_head);
+
       memcpy(&memory[frame * kPageSize], &free_list_head, sizeof(uint32_t));
       free_list_head = frame;
       ++page_frames_free;

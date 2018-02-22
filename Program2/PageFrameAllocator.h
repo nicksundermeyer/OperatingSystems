@@ -9,6 +9,8 @@
 #ifndef PAGEFRAMEALLOCATOR_H
 #define PAGEFRAMEALLOCATOR_H
 
+#include <MMU.h>
+
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -23,7 +25,7 @@ public:
    * 
    * @param page_frame_count
    */
-  PageFrameAllocator(uint32_t page_frame_count);
+  PageFrameAllocator(uint32_t page_frame_count, mem::MMU &memoryptr);
   
   virtual ~PageFrameAllocator() {}  // empty destrucor
   
@@ -64,8 +66,8 @@ public:
   
   static const uint32_t kPageSize = 0x1000;
 private:
-  // Vector to hold memory to be allocated
-  std::vector<uint8_t> memory;
+  // Reference to memory object, and the pmcb to control it
+  mem::MMU &memory;
   
   // Number of first free page frame
   uint32_t free_list_head;
