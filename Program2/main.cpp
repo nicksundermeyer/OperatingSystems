@@ -12,6 +12,8 @@
  */
 
 #include <cstdlib>
+#include <MMU.h>
+#include "ProcessTrace.h"
 
 using namespace std;
 
@@ -19,7 +21,11 @@ using namespace std;
  * 
  */
 int main(int argc, char** argv) {
-
+    
+    mem::MMU MMU_name(256);
+    
+    ProcessTrace p("trace1v.txt");
+    p.Execute();
     return 0;
 }
 

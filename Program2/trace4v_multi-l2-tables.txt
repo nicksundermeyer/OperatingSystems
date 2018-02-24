@@ -1,0 +1,43 @@
+# trace4v_multi-l2-tables.txt - test allocation of memory over multiple L2 tables
+alloc    40000000  1000
+fill     40000000  100   7f
+put      400000a0  81    82  83  84  85
+put      400000a2  92
+compare  400000a0  81    82  92  84  85
+put      400000ff  aa
+compare  400000ff  aa
+fill     4000000b  3     de
+compare  4000000a  7f     de  de  de  7f
+dump     40000000  100
+alloc    753ff000  3000
+fill     753ff000  3000  ff
+put      753ffff0  0     1   2   3   4   5   6  7  8  9  a  b  c  d  e  f
+compare  753ffff0  0     1   2   3   4   5   6  7  8  9  a  b  c  d  e  f
+dump     753fffef  12
+alloc    0affe000  4000
+fill     0affe000  1800  a1
+fill     0afff800  1800  a2
+fill     0b001000  1000  a3
+compare  753ffff0  0     1   2   3   4   5   6  7  8  9  a  b  c  d  e  f
+dump     753fffef  12
+compare  0afff7fe  a1    a1  a2  a2
+dump     0afff7f0  20
+compare  0b000ffe  a2    a2  a3  a3
+dump     0b000ff0  20
+dump     0b001ff0  10
+alloc    fffff000  1000
+fill     ffffff00  100   0
+put      ffffffa0  81    82  83  84  85
+put      ffffffa2  92
+compare  ffffffa0  81    82  92  84  85
+put      ffffffff  aa
+compare  ffffffff  aa
+fill     ffffff0b  3     de
+compare  ffffff0a  0     de  de  de  0
+dump     ffffff00  100
+copy     753ff000  0affe000  3000
+# The following compare should fail at every byte
+compare  753ffff0  0     1   2   3   4   5   6  7  8  9  a  b  c  d  e  f
+# The following compare should succeed
+compare  754007fe  a1    a1  a2  a2
+# end of trace

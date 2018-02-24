@@ -1,0 +1,49 @@
+1:# trace2v_multi-page.txt
+2:#   Allocates multiple pages (in the same 2nd-level page table)
+3:alloc    01006000  3000
+4:# Spot check pages cleared to 0
+5:compare  01006000  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+6:compare  01007000  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+7:compare  01008000  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+8:fill     01006000  3000  ff
+9:put      01006ff0  0     1   2   3   4  5  6  7  8  9  a  b  c  d  e  f
+10:compare  01006ff0  0     1   2   3   4  5  6  7  8  9  a  b  c  d  e  f
+11:dump     01006fef  12
+1006fef
+ ff 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e
+ 0f ff
+12:alloc    01023000  4000
+13:# Spot check pages cleared to 0
+14:compare  01023000  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+15:compare  01024000  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+16:compare  01025000  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+17:compare  01026000  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+18:fill     01023000  1800  a1
+19:fill     01024800  1800  a2
+20:fill     01026000  1000  a3
+21:compare  01006ff0  0     1   2   3   4  5  6  7  8  9  a  b  c  d  e  f
+22:dump     01006fef  12
+1006fef
+ ff 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e
+ 0f ff
+23:compare  010247fe  a1    a1  a2  a2
+24:dump     010247f0  20
+10247f0
+ a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1
+ a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2
+25:compare  01025ffe  a2    a2  a3  a3
+26:dump     01025ff0  20
+1025ff0
+ a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2
+ a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3
+27:dump     01026ff0  10
+1026ff0
+ a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3
+28:copy     01025000  01006ff0  10
+29:compare  01024fff  a2     0   1   2   3   4  5  6  7  8  9  a  b  c  d  e  f  a2
+30:# The following line tests that compare will generate errors on mismatches.
+31:# There should be two mismatched bytes.
+32:compare  01024fff  a2     0   1   2   e   4  5  6  7  8  9  a  b  0  d  e  f  a2
+compare error at address 1025003, expected e, actual is 3
+compare error at address 102500c, expected 0, actual is c
+33:# end of trace

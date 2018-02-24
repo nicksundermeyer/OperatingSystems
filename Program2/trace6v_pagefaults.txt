@@ -1,0 +1,23 @@
+# trace6v_pagefaults.txt - test page fault exception handling
+alloc    40000000  1000
+alloc    753ff000  3000
+alloc    0affe000  4000
+alloc    fffff000  1000
+# Each of the following lines should generate a PageFaultException
+compare  3fffffff  0
+compare  40000fff  0     0
+put      753fefff  37
+put      b001ffe   1     2   3  4
+dump     b001ffe   4
+# Test that fill completes up to last byte before page fault
+fill     fffff000  1001  ab
+compare  fffffffe  ab    ab
+# Test that copy completes up to the read page fault (copy page faults, compare should succeed)
+put      75401ffe  fe    ff
+copy     0affe000  75401000  1001
+compare  0affeffe  fe    ff
+# Test copy write page fault and make sure write succeeded up to the fault
+put      754007fe  ae    af
+copy     40000000  753ff800  1001
+compare  40000ffe  ae    af
+# end of trace

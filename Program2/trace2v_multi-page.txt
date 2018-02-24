@@ -1,0 +1,33 @@
+# trace2v_multi-page.txt
+#   Allocates multiple pages (in the same 2nd-level page table)
+alloc    01006000  3000
+# Spot check pages cleared to 0
+compare  01006000  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+compare  01007000  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+compare  01008000  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+fill     01006000  3000  ff
+put      01006ff0  0     1   2   3   4  5  6  7  8  9  a  b  c  d  e  f
+compare  01006ff0  0     1   2   3   4  5  6  7  8  9  a  b  c  d  e  f
+dump     01006fef  12
+alloc    01023000  4000
+# Spot check pages cleared to 0
+compare  01023000  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+compare  01024000  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+compare  01025000  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+compare  01026000  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+fill     01023000  1800  a1
+fill     01024800  1800  a2
+fill     01026000  1000  a3
+compare  01006ff0  0     1   2   3   4  5  6  7  8  9  a  b  c  d  e  f
+dump     01006fef  12
+compare  010247fe  a1    a1  a2  a2
+dump     010247f0  20
+compare  01025ffe  a2    a2  a3  a3
+dump     01025ff0  20
+dump     01026ff0  10
+copy     01025000  01006ff0  10
+compare  01024fff  a2     0   1   2   3   4  5  6  7  8  9  a  b  c  d  e  f  a2
+# The following line tests that compare will generate errors on mismatches.
+# There should be two mismatched bytes.
+compare  01024fff  a2     0   1   2   e   4  5  6  7  8  9  a  b  0  d  e  f  a2
+# end of trace

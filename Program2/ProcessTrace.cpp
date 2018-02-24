@@ -23,10 +23,10 @@ using std::cout;
 using std::cerr;
 using std::getline;
 using std::istringstream;
-using std::string;
+//using std::string;
 using std::vector;
 
-ProcessTrace::ProcessTrace(string file_name_) 
+ProcessTrace::ProcessTrace(std::string file_name_) 
 : file_name(file_name_), line_number(0) {
   // Open the trace file.  Abort program if can't open.
   trace.open(file_name, std::ios_base::in);
@@ -42,34 +42,37 @@ ProcessTrace::~ProcessTrace() {
 
 void ProcessTrace::Execute(void) {
   // Read and process commands
-  string line;                // text line read
-  string cmd;                 // command from line
+  std::string line;                // text line read
+  std::string cmd;                 // command from line
   vector<uint32_t> cmdArgs;   // arguments from line
   
   // Select the command to execute
   while (ParseCommand(line, cmd, cmdArgs)) {
-    if (cmd == "alloc" ) {
-      CmdAlloc(line, cmd, cmdArgs);    // allocate memory
-    } else if (cmd == "compare") {
-      CmdCompare(line, cmd, cmdArgs);  // get and compare multiple bytes
-    } else if (cmd == "put") {
-      CmdPut(line, cmd, cmdArgs);      // put bytes
-    } else if (cmd == "fill") {
-      CmdFill(line, cmd, cmdArgs);     // fill bytes with value
-    } else if (cmd == "copy") {
-      CmdCopy(line, cmd, cmdArgs);     // copy bytes to dest from source
-    } else if (cmd == "dump") {
-      CmdDump(line, cmd, cmdArgs);     // dump byte values to output
-    } else {
-      cerr << "ERROR: invalid command at line " << line_number << ":\n" 
-              << line << "\n";
-      exit(2);
+    if (line[0] != '#'){
+        if (cmd == "alloc" ) {
+          CmdAlloc(line, cmd, cmdArgs);    // allocate memory
+        } else if (cmd == "compare") {
+          CmdCompare(line, cmd, cmdArgs);  // get and compare multiple bytes
+        } else if (cmd == "put") {
+          CmdPut(line, cmd, cmdArgs);      // put bytes
+        } else if (cmd == "fill") {
+          CmdFill(line, cmd, cmdArgs);     // fill bytes with value
+        } else if (cmd == "copy") {
+          CmdCopy(line, cmd, cmdArgs);     // copy bytes to dest from source
+        } else if (cmd == "dump") {
+          CmdDump(line, cmd, cmdArgs);     // dump byte values to output
+        } else {
+          cerr << "ERROR: invalid command at line " << line_number << ":\n" 
+                  << line << "\n";
+          exit(2);
+        }
     }
+
   }
 }
 
 bool ProcessTrace::ParseCommand(
-    string &line, string &cmd, vector<uint32_t> &cmdArgs) {
+    std::string &line, std::string &cmd, vector<uint32_t> &cmdArgs) {
   cmdArgs.clear();
   line.clear();
   
@@ -99,16 +102,16 @@ bool ProcessTrace::ParseCommand(
   }
 }
 
-void ProcessTrace::CmdAlloc(const string &line, 
-                            const string &cmd, 
+void ProcessTrace::CmdAlloc(const std::string &line, 
+                            const std::string &cmd, 
                             const vector<uint32_t> &cmdArgs) {
   // Allocate the specified memory size
   Addr page_count = (cmdArgs.at(0) + mem::kPageSize - 1) / mem::kPageSize;
   memory = std::make_unique<MMU>(page_count);
 }
 
-void ProcessTrace::CmdCompare(const string &line,
-                              const string &cmd,
+void ProcessTrace::CmdCompare(const std::string &line,
+                              const std::string &cmd,
                               const vector<uint32_t> &cmdArgs) {
   uint32_t addr = cmdArgs.at(0);
 
@@ -126,8 +129,8 @@ void ProcessTrace::CmdCompare(const string &line,
   }
 }
 
-void ProcessTrace::CmdPut(const string &line,
-                          const string &cmd,
+void ProcessTrace::CmdPut(const std::string &line,
+                          const std::string &cmd,
                           const vector<uint32_t> &cmdArgs) {
   // Put multiple bytes starting at specified address
   uint32_t addr = cmdArgs.at(0);
@@ -139,8 +142,8 @@ void ProcessTrace::CmdPut(const string &line,
   memory->put_bytes(addr, num_bytes, buffer);
 }
 
-void ProcessTrace::CmdCopy(const string &line,
-                           const string &cmd,
+void ProcessTrace::CmdCopy(const std::string &line,
+                           const std::string &cmd,
                            const vector<uint32_t> &cmdArgs) {
   // Copy specified number of bytes to destination from source
   Addr dst = cmdArgs.at(0);
@@ -151,8 +154,8 @@ void ProcessTrace::CmdCopy(const string &line,
   memory->put_bytes(dst, num_bytes, buffer);
 }
 
-void ProcessTrace::CmdFill(const string &line,
-                          const string &cmd,
+void ProcessTrace::CmdFill(const std::string &line,
+                          const std::string &cmd,
                           const vector<uint32_t> &cmdArgs) {
   // Fill a sequence of bytes with the specified value
   Addr addr = cmdArgs.at(0);
@@ -163,8 +166,8 @@ void ProcessTrace::CmdFill(const string &line,
   }
 }
 
-void ProcessTrace::CmdDump(const string &line,
-                          const string &cmd,
+void ProcessTrace::CmdDump(const std::string &line,
+                          const std::string &cmd,
                           const vector<uint32_t> &cmdArgs) {
   uint32_t addr = cmdArgs.at(0);
   uint32_t count = cmdArgs.at(1);

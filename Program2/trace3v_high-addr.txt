@@ -1,0 +1,21 @@
+# trace3v_high-addr.txt - simple test of access to last page in address space.
+alloc    fffff000  1000
+# Make sure allocated page is cleared to 0 by checking scattered blocks of bytes
+compare  fffff000  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+compare  fffff800  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+compare  fffffff0  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+fill     fffff000  1000  55
+put      fffff0a0  81    82  83  84  85
+put      fffff0a2  92
+compare  fffff0a0  81    82  92  84  85
+put      fffff0ff  aa
+compare  fffff0ff  aa
+fill     fffff00b  3     de
+compare  fffff00a  55     de  de  de  55
+fill     fffff020  10    cc
+fill     fffffff0  10    bb
+copy     fffffff1  fffff0a0  5
+compare  fffffff0  bb    81  82  92  84  85  bb bb bb bb bb bb bb bb bb bb
+dump     fffff000  100
+dump     fffffff0  10
+# end of trace

@@ -2,6 +2,8 @@
  * 
  * File:   PageFrameAllocator.cpp
  * Author: Mike Goss <mikegoss@cs.du.edu>
+ * Edited by: Evan Reierson, Nick Sundermeyer
+ * 
  * 
  * Created on February 2, 2018, 3:47 PM
  */
@@ -27,7 +29,7 @@ PageFrameAllocator::PageFrameAllocator(uint32_t page_frame_count, MMU &memoryptr
   // Add all page frames to free list
   for (uint8_t frame = 0; frame < page_frame_count-1; ++frame) {
     uint8_t next = frame + 1;
-    memory.put_bytes(frame*kPageSize, sizeof(uint8_t), &next);
+    memory.put_bytes(frame*kPageSize, sizeof(uint32_t), &next);
     //memcpy(&memory[frame*kPageSize], &next, sizeof(uint32_t));
   }
   
@@ -44,9 +46,9 @@ bool PageFrameAllocator::Allocate(uint32_t count,
     while (count-- > 0) {
       // Return next free frame to caller
       page_frames.push_back(free_list_head);
-      
+      uint8_t next = free_list_head*kPageSize;
       // De-link frame from head of free list
-      memory.put_bytes(&free_list_head, sizeof(uint8_t), free_list_head*kPageSize);
+      memory.put_bytes(free_list_head, sizeof(uint8_t), &next);
 //      memcpy(&free_list_head, &memory[free_list_head*kPageSize], sizeof(uint32_t));
       --page_frames_free;
     }
@@ -61,14 +63,15 @@ bool PageFrameAllocator::Deallocate(uint32_t count,
   // If enough to deallocate
   if(count <= page_frames.size()) {
     while(count-- > 0) {
-      // Return next frame to head of free list
-      uint32_t frame = page_frames.back();
-      page_frames.pop_back();
-            memory.put_bytes(frame * kPageSize, sizeof(uint8_t), &free_list_head);
+        // Return next frame to head of free list
+        uint32_t frame = page_frames.back();
+        page_frames.pop_back();
+        uint8_t next = free_list_head;
+        memory.put_bytes(frame * kPageSize, sizeof(uint8_t), &next);
 
-      memcpy(&memory[frame * kPageSize], &free_list_head, sizeof(uint32_t));
-      free_list_head = frame;
-      ++page_frames_free;
+        //memcpy(&memory[frame * kPageSize], &free_list_head, sizeof(uint32_t));
+        free_list_head = frame;
+        ++page_frames_free;
     }
     return true;
   } else {
@@ -79,11 +82,12 @@ bool PageFrameAllocator::Deallocate(uint32_t count,
 std::string PageFrameAllocator::FreeListToString(void) const {
   std::ostringstream out_string;
   
-  uint32_t next_free = free_list_head;
+  uint8_t next_free = free_list_head;
   
   while (next_free != kEndList) {
     out_string << " " << std::hex << next_free;
-    memcpy(&next_free, &memory[next_free*kPageSize], sizeof(uint32_t));
+    memory.get_bytes(&next_free, next_free*kPageSize, sizeof(uint32_t));
+    //memcpy(&next_free, &memory[next_free*kPageSize], sizeof(uint32_t));
   }
   
   return out_string.str();
