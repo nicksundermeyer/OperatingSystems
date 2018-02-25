@@ -58,6 +58,7 @@
 #define PROCESSTRACE_H
 
 #include <MMU.h>
+#include <PMCB.h>
 
 #include <fstream>
 #include <string>
@@ -70,7 +71,7 @@ public:
    * 
    * @param file_name_ source of trace commands
    */
-  ProcessTrace(std::string file_name_);
+  ProcessTrace(std::string file_name_, mem::MMU &memoryptr, mem::PMCB &pmcbptr);
   
   /**
    * Destructor - close trace file, clean up processing
@@ -95,8 +96,9 @@ private:
   std::fstream trace;
   long line_number;
 
-  // Memory contents
-  std::unique_ptr<mem::MMU> memory;
+  // Memory contents and PMCB to control
+  mem::MMU &memory;
+  mem::PMCB &pmcb;
   
   /**
    * ParseCommand - parse a trace file command.

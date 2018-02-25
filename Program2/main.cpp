@@ -13,18 +13,22 @@
 
 #include <cstdlib>
 #include <MMU.h>
+#include <PMCB.h>
 #include "ProcessTrace.h"
-
-using namespace std;
+#include <iostream>
 
 /*
  * 
  */
 int main(int argc, char** argv) {
     
-    mem::MMU MMU_name(256);
+    // create memory, create and set PMCB
+    mem::MMU memory(256);
+    mem::PMCB pmcb;
+    memory.set_PMCB(pmcb);
     
-    ProcessTrace p("trace1v.txt");
+//    ProcessTrace p(argv[1], memory, pmcb);
+    ProcessTrace p("trace1v.txt", memory, pmcb);
     p.Execute();
     return 0;
 }
