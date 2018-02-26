@@ -47,7 +47,10 @@ bool PageFrameAllocator::Allocate(uint32_t count,
       page_frames.push_back(free_list_head);
       uint8_t next[] = {0, 0, 0, free_list_head*kPageSize};
       // De-link frame from head of free list
-      memory.put_bytes(free_list_head, sizeof(uint32_t), next);
+      // memory.put_bytes(free_list_head, sizeof(uint32_t), next); // get bytes?
+      // need to go from byte array to uint32 free list head
+      memory.get_bytes(&free_list_head, &next, sizeof(uint32_t));
+      
 //      memcpy(&free_list_head, &memory[free_list_head*kPageSize], sizeof(uint32_t));
       --page_frames_free;
     }

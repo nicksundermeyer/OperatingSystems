@@ -40,6 +40,10 @@ ProcessTrace::ProcessTrace(std::string file_name_, MMU &memoryptr, PMCB &pmcbptr
     cerr << "ERROR: failed to open trace file: " << file_name << "\n";
     exit(2);
   }
+  
+  // create first-level page table (lines 54-59 in MMUTests.cpp)
+  // write method for second-level page tables?
+  
 }
 
 ProcessTrace::~ProcessTrace() {
