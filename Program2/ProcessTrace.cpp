@@ -27,11 +27,12 @@ using std::istringstream;
 //using std::string;
 using std::vector;
 
-ProcessTrace::ProcessTrace(std::string file_name_, MMU &memoryptr, PMCB &pmcbptr) 
+ProcessTrace::ProcessTrace(std::string file_name_, MMU &memoryptr, PMCB &pmcbptr, PageFrameAllocator &pfaptr) 
 :	file_name(file_name_), 
 	line_number(0),
 	memory(memoryptr),
-	pmcb(pmcbptr)
+	pmcb(pmcbptr),
+        pfa(pfaptr)
 {
   // Open the trace file.  Abort program if can't open.
   trace.open(file_name, std::ios_base::in);
@@ -46,14 +47,14 @@ ProcessTrace::~ProcessTrace() {
 }
 
 void ProcessTrace::Execute(void) {
-  // Read and process commands
-  std::string line;                // text line read
-  std::string cmd;                 // command from line
-  vector<uint32_t> cmdArgs;   // arguments from line
+    // Read and process commands
+    std::string line;                // text line read
+    std::string cmd;                 // command from line
+    vector<uint32_t> cmdArgs;   // arguments from line
   
-  // Select the command to execute
-  while (ParseCommand(line, cmd, cmdArgs)) {
-    if (line[0] != '#'){
+    // Select the command to execute
+    
+    while (ParseCommand(line, cmd, cmdArgs)) {
         if (cmd == "alloc" ) {
           CmdAlloc(line, cmd, cmdArgs);    // allocate memory
         } else if (cmd == "compare") {
@@ -66,14 +67,13 @@ void ProcessTrace::Execute(void) {
           CmdCopy(line, cmd, cmdArgs);     // copy bytes to dest from source
         } else if (cmd == "dump") {
           CmdDump(line, cmd, cmdArgs);     // dump byte values to output
-        } else {
+        } else if (cmd == "#"){}
+        else {
           cerr << "ERROR: invalid command at line " << line_number << ":\n" 
                   << line << "\n";
           exit(2);
         }
     }
-
-  }
 }
 
 bool ProcessTrace::ParseCommand(
@@ -94,9 +94,9 @@ bool ProcessTrace::ParseCommand(
     
     // Get arguments
     uint32_t arg;
-    while (lineStream >> std::hex >> arg) {
-      cmdArgs.push_back(arg);
-    }
+        while (lineStream >> std::hex >> arg) {
+            cmdArgs.push_back(arg);
+        }
     return true;
   } else if (trace.eof()) {
       return false;
@@ -110,27 +110,47 @@ bool ProcessTrace::ParseCommand(
 void ProcessTrace::CmdAlloc(const std::string &line, 
                             const std::string &cmd, 
                             const vector<uint32_t> &cmdArgs) {
-  // Allocate the specified memory size
-  Addr page_count = (cmdArgs.at(0) + mem::kPageSize - 1) / mem::kPageSize;
+    // Allocate the specified memory size
+    Addr page_count = (cmdArgs.at(0) + mem::kPageSize - 1) / mem::kPageSize;
+    for (Addr i=0; i<page_count; i++){
+        //pfa.Allocate(1, )
+    }
+    
 }
 
 void ProcessTrace::CmdCompare(const std::string &line,
                               const std::string &cmd,
                               const vector<uint32_t> &cmdArgs) {
-  uint32_t addr = cmdArgs.at(0);
+    
+    uint32_t addr = cmdArgs.at(0);
 
-  // Compare specified byte values
-  size_t num_bytes = cmdArgs.size() - 1;
-  uint8_t buffer[num_bytes];
-  memory.get_bytes(buffer, addr, num_bytes);
-  for (int i = 1; i < cmdArgs.size(); ++i) {
-    if(buffer[i-1] != cmdArgs.at(i)) {
-      cout << "compare error at address " << std::hex << addr
-              << ", expected " << static_cast<uint32_t>(cmdArgs.at(i))
-              << ", actual is " << static_cast<uint32_t>(buffer[i-1]) << "\n";
+    try{
+        std::cout << "yolo " <<  std::hex << addr << std::endl;
+        memory.ToPhysical(addr, addr, false);
+    } catch (mem::PageFaultException& some_shit){
+        
     }
-    ++addr;
-  }
+    
+    // Compare specified byte values
+    size_t num_bytes = cmdArgs.size() - 1;
+    uint8_t buffer[num_bytes];
+    
+//    PMCB p;
+//    memory.get_PMCB(p);
+//    p.vm_enable = 0;
+//    memory.set_PMCB(p);
+    
+    memory.get_bytes(buffer, addr, num_bytes);
+
+    //std::cout << "yolo" <<  addr << std::endl;
+    for (int i = 1; i < cmdArgs.size(); ++i) {
+      if(buffer[i-1] != cmdArgs.at(i)) {
+        cout << "compare error at address " << std::hex << addr
+                << ", expected " << static_cast<uint32_t>(cmdArgs.at(i))
+                << ", actual is " << static_cast<uint32_t>(buffer[i-1]) << "\n";
+      }
+      ++addr;
+    }
 }
 
 void ProcessTrace::CmdPut(const std::string &line,

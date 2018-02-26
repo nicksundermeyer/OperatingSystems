@@ -63,6 +63,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include "PageFrameAllocator.h"
 
 class ProcessTrace {
 public:
@@ -71,7 +72,7 @@ public:
    * 
    * @param file_name_ source of trace commands
    */
-  ProcessTrace(std::string file_name_, mem::MMU &memoryptr, mem::PMCB &pmcbptr);
+  ProcessTrace(std::string file_name_, mem::MMU &memoryptr, mem::PMCB &pmcbptr, PageFrameAllocator &pfaptr);
   
   /**
    * Destructor - close trace file, clean up processing
@@ -99,6 +100,7 @@ private:
   // Memory contents and PMCB to control
   mem::MMU &memory;
   mem::PMCB &pmcb;
+  PageFrameAllocator &pfa;
   
   /**
    * ParseCommand - parse a trace file command.

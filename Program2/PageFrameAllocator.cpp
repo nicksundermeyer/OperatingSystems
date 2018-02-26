@@ -25,17 +25,16 @@ PageFrameAllocator::PageFrameAllocator(uint32_t page_frame_count, MMU &memoryptr
 {
     
     // add page frames to free list
-    
   // Add all page frames to free list
-  for (uint8_t frame = 0; frame < page_frame_count-1; ++frame) {
-    uint8_t next = frame + 1;
-    memory.put_bytes(frame*kPageSize, sizeof(uint32_t), &next);
+  for (uint32_t frame = 0; frame < page_frame_count-1; ++frame) {
+    uint8_t next[] = {0, 0, 0, frame + 1};
+    memory.put_bytes(frame*kPageSize, sizeof(uint32_t), next);
     //memcpy(&memory[frame*kPageSize], &next, sizeof(uint32_t));
   }
   
   // Last page frame has end of list marker
-  uint8_t end_list = kEndList;
-  memory.put_bytes((page_frame_count-1)*kPageSize, sizeof(uint8_t), &end_list);
+  uint8_t end_list[] = {0xFF, 0xFF, 0xFF, 0xFF};
+  memory.put_bytes((page_frame_count-1)*kPageSize, sizeof(uint32_t), end_list);
 
 //  memcpy(&memory[(page_frame_count-1)*kPageSize], &end_list, sizeof(uint32_t));
 }
@@ -46,9 +45,9 @@ bool PageFrameAllocator::Allocate(uint32_t count,
     while (count-- > 0) {
       // Return next free frame to caller
       page_frames.push_back(free_list_head);
-      uint8_t next = free_list_head*kPageSize;
+      uint8_t next[] = {0, 0, 0, free_list_head*kPageSize};
       // De-link frame from head of free list
-      memory.put_bytes(free_list_head, sizeof(uint8_t), &next);
+      memory.put_bytes(free_list_head, sizeof(uint32_t), next);
 //      memcpy(&free_list_head, &memory[free_list_head*kPageSize], sizeof(uint32_t));
       --page_frames_free;
     }
@@ -66,8 +65,8 @@ bool PageFrameAllocator::Deallocate(uint32_t count,
         // Return next frame to head of free list
         uint32_t frame = page_frames.back();
         page_frames.pop_back();
-        uint8_t next = free_list_head;
-        memory.put_bytes(frame * kPageSize, sizeof(uint8_t), &next);
+        uint8_t next[] = {0, 0, 0, free_list_head};
+        memory.put_bytes(frame * kPageSize, sizeof(uint32_t), next);
 
         //memcpy(&memory[frame * kPageSize], &free_list_head, sizeof(uint32_t));
         free_list_head = frame;

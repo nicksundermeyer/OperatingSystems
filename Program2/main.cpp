@@ -15,6 +15,7 @@
 #include <MMU.h>
 #include <PMCB.h>
 #include "ProcessTrace.h"
+#include "PageFrameAllocator.h"
 #include <iostream>
 
 /*
@@ -25,10 +26,14 @@ int main(int argc, char** argv) {
     // create memory, create and set PMCB
     mem::MMU memory(256);
     mem::PMCB pmcb;
+    PageFrameAllocator pfa(256, memory);
+    
+    pmcb.vm_enable = true; // not sure if we want to do this here
+           
     memory.set_PMCB(pmcb);
     
 //    ProcessTrace p(argv[1], memory, pmcb);
-    ProcessTrace p("trace1v.txt", memory, pmcb);
+    ProcessTrace p("trace1v.txt", memory, pmcb, pfa);
     p.Execute();
     return 0;
 }

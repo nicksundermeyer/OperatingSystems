@@ -7,9 +7,15 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group name="MemorySubsystem"/>
-        <group name="OperatingSystems"/>
         <group>
             <file>file:/home/sundy/OperatingSystems/MemorySubsystem/MMU.h</file>
+        </group>
+        <group name="OperatingSystems">
+            <file>file:/home/ear/Desktop/school/winter_2018/OS/OperatingSystems/MemorySubsystem/PMCB.h</file>
+            <file>file:/home/ear/Desktop/school/winter_2018/OS/OperatingSystems/MemorySubsystem/MMU.h</file>
+            <file>file:/home/ear/Desktop/school/winter_2018/OS/OperatingSystems/MemorySubsystem/MMU.cpp</file>
+            <file>file:/home/ear/Desktop/school/winter_2018/OS/OperatingSystems/MemorySubsystem/PageTable.h</file>
+            <file>file:/home/ear/Desktop/school/winter_2018/OS/OperatingSystems/MemorySubsystem/PhysicalMemory.cpp</file>
         </group>
     </open-files>
 </project-private>
