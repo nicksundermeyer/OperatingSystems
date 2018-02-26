@@ -55,24 +55,32 @@ void ProcessTrace::Execute(void) {
     // Select the command to execute
     
     while (ParseCommand(line, cmd, cmdArgs)) {
-        if (cmd == "alloc" ) {
-          CmdAlloc(line, cmd, cmdArgs);    // allocate memory
-        } else if (cmd == "compare") {
-          CmdCompare(line, cmd, cmdArgs);  // get and compare multiple bytes
-        } else if (cmd == "put") {
-          CmdPut(line, cmd, cmdArgs);      // put bytes
-        } else if (cmd == "fill") {
-          CmdFill(line, cmd, cmdArgs);     // fill bytes with value
-        } else if (cmd == "copy") {
-          CmdCopy(line, cmd, cmdArgs);     // copy bytes to dest from source
-        } else if (cmd == "dump") {
-          CmdDump(line, cmd, cmdArgs);     // dump byte values to output
-        } else if (cmd == "#"){}
-        else {
-          cerr << "ERROR: invalid command at line " << line_number << ":\n" 
-                  << line << "\n";
-          exit(2);
-        }
+	try
+	{
+	    if (cmd == "alloc" ) {
+	    CmdAlloc(line, cmd, cmdArgs);    // allocate memory
+	  } else if (cmd == "compare") {
+	    CmdCompare(line, cmd, cmdArgs);  // get and compare multiple bytes
+	  } else if (cmd == "put") {
+	    CmdPut(line, cmd, cmdArgs);      // put bytes
+	  } else if (cmd == "fill") {
+	    CmdFill(line, cmd, cmdArgs);     // fill bytes with value
+	  } else if (cmd == "copy") {
+	    CmdCopy(line, cmd, cmdArgs);     // copy bytes to dest from source
+	  } else if (cmd == "dump") {
+	    CmdDump(line, cmd, cmdArgs);     // dump byte values to output
+	  } else if (cmd == "#"){}
+	  else {
+	    cerr << "ERROR: invalid command at line " << line_number << ":\n" 
+		    << line << "\n";
+	    exit(2);
+	  }
+	}
+	catch(const std::exception& e)
+	{
+//	    std::cout << e.what() << std::endl;
+	    pmcb.operation_state = mem::PMCB::NONE;
+	}
     }
 }
 
@@ -112,9 +120,13 @@ void ProcessTrace::CmdAlloc(const std::string &line,
                             const vector<uint32_t> &cmdArgs) {
     // Allocate the specified memory size
     Addr page_count = (cmdArgs.at(0) + mem::kPageSize - 1) / mem::kPageSize;
+    
+    // put mmu in physical mode before allocating pages
+    pmcb.vm_enable = false;
     for (Addr i=0; i<page_count; i++){
-        //pfa.Allocate(1, )
+//        pfa.Allocate(1, )
     }
+    pmcb.vm_enable = true;
     
 }
 
@@ -124,12 +136,8 @@ void ProcessTrace::CmdCompare(const std::string &line,
     
     uint32_t addr = cmdArgs.at(0);
 
-    try{
-        std::cout << "yolo " <<  std::hex << addr << std::endl;
-        memory.ToPhysical(addr, addr, false);
-    } catch (mem::PageFaultException& some_shit){
-        
-    }
+//    std::cout << std::hex << addr << std::endl;
+    memory.ToPhysical(addr, addr, false);
     
     // Compare specified byte values
     size_t num_bytes = cmdArgs.size() - 1;
@@ -142,7 +150,7 @@ void ProcessTrace::CmdCompare(const std::string &line,
     
     memory.get_bytes(buffer, addr, num_bytes);
 
-    //std::cout << "yolo" <<  addr << std::endl;
+    //std::cout << addr << std::endl;
     for (int i = 1; i < cmdArgs.size(); ++i) {
       if(buffer[i-1] != cmdArgs.at(i)) {
         cout << "compare error at address " << std::hex << addr

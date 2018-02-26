@@ -27,8 +27,6 @@ int main(int argc, char** argv) {
     mem::MMU memory(256);
     mem::PMCB pmcb;
     PageFrameAllocator pfa(256, memory);
-    
-    pmcb.vm_enable = true; // not sure if we want to do this here
            
     memory.set_PMCB(pmcb);
     
