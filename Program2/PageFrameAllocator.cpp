@@ -58,7 +58,6 @@ bool PageFrameAllocator::Allocate(uint32_t count,
 		
 //	memcpy(&free_list_head, next, sizeof(uint32_t));
 	free_list_head = next[0] << 24 | next[1] << 16 | next[2] << 8 | next[3];
-      
       --page_frames_free;
     }
     return true;
