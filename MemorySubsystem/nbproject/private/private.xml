@@ -14,6 +14,7 @@
             <file>file:/home/ear/Desktop/school/winter_2018/OS/OperatingSystems/MemorySubsystem/PMCB.h</file>
             <file>file:/home/ear/Desktop/school/winter_2018/OS/OperatingSystems/MemorySubsystem/MMU.h</file>
             <file>file:/home/ear/Desktop/school/winter_2018/OS/OperatingSystems/MemorySubsystem/MMU.cpp</file>
+            <file>file:/home/ear/Desktop/school/winter_2018/OS/OperatingSystems/MemorySubsystem/tests/MMUTests.cpp</file>
             <file>file:/home/ear/Desktop/school/winter_2018/OS/OperatingSystems/MemorySubsystem/PageTable.h</file>
             <file>file:/home/ear/Desktop/school/winter_2018/OS/OperatingSystems/MemorySubsystem/PhysicalMemory.cpp</file>
         </group>

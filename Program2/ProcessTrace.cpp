@@ -15,6 +15,8 @@
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <cstring>
+#include <bitset>
 
 using mem::Addr;
 using mem::MMU;
@@ -24,8 +26,9 @@ using std::cout;
 using std::cerr;
 using std::getline;
 using std::istringstream;
-//using std::string;
 using std::vector;
+using std::bitset;
+using std::memcpy;
 
 ProcessTrace::ProcessTrace(std::string file_name_, MMU &memoryptr, PMCB &pmcbptr, PageFrameAllocator &pfaptr) 
 :	file_name(file_name_), 
@@ -34,22 +37,31 @@ ProcessTrace::ProcessTrace(std::string file_name_, MMU &memoryptr, PMCB &pmcbptr
 	pmcb(pmcbptr),
         pfa(pfaptr)
 {
-  // Open the trace file.  Abort program if can't open.
-  trace.open(file_name, std::ios_base::in);
-  if (!trace.is_open()) {
-    cerr << "ERROR: failed to open trace file: " << file_name << "\n";
-    exit(2);
-  }
-  // put memory in physical mode
-  std::vector<uint32_t> page_frames;
-  PMCB temp;
-  memory.get_PMCB(temp);
-  temp.vm_enable = false;
-  memory.set_PMCB(temp);
-  
-  // allocate one page frame for the top level page table
-  pfa.Allocate(3, page_frames);
-  std::cout << page_frames[0] << ":" << page_frames[1] << ":" << page_frames[2] << std::endl;
+    // Open the trace file.  Abort program if can't open.
+    trace.open(file_name, std::ios_base::in);
+    if (!trace.is_open()) {
+      cerr << "ERROR: failed to open trace file: " << file_name << "\n";
+      exit(2);
+    }
+    // put memory in physical mode
+    std::vector<uint32_t> page_frames;
+    PMCB temp;
+    memory.get_PMCB(temp);
+    temp.vm_enable = false;
+    memory.set_PMCB(temp);
+
+    // allocate one page frame for the top level page table
+    pfa.Allocate(3, page_frames);
+    std::cout << page_frames[0] << ":" << page_frames[1] << ":" << page_frames[2] << std::endl;
+
+    uint8_t zero[] = {0, 0, 0, 0};
+    memory.put_bytes(page_frames[0], sizeof(uint32_t), zero);
+    
+    // put pmcb back in virtual mode, set base page table address
+    memory.get_PMCB(temp);
+    temp.vm_enable = true;
+    temp.page_table_base = page_frames[0];
+    memory.set_PMCB(temp);
 }
 
 ProcessTrace::~ProcessTrace() {
@@ -67,6 +79,12 @@ void ProcessTrace::Execute(void) {
     while (ParseCommand(line, cmd, cmdArgs)) {
 	try
 	{
+            // set in virtual mode for most commands
+            PMCB temp;
+            memory.get_PMCB(temp);
+            temp.vm_enable = true;
+            memory.set_PMCB(temp);
+            
 	    if (cmd == "alloc" ) {
 	    CmdAlloc(line, cmd, cmdArgs);    // allocate memory
 	  } else if (cmd == "compare") {
@@ -79,7 +97,9 @@ void ProcessTrace::Execute(void) {
 	    CmdCopy(line, cmd, cmdArgs);     // copy bytes to dest from source
 	  } else if (cmd == "dump") {
 	    CmdDump(line, cmd, cmdArgs);     // dump byte values to output
-	  } else if (cmd == "#"){}
+	  } else if (cmd == "writable") {
+              CmdWritable(line, cmd, cmdArgs);
+          } else if (cmd == "#"){}
 	  else {
 	    cerr << "ERROR: invalid command at line " << line_number << ":\n" 
 		    << line << "\n";
@@ -131,24 +151,96 @@ bool ProcessTrace::ParseCommand(
 void ProcessTrace::CmdAlloc(const std::string &line, 
                             const std::string &cmd, 
                             const vector<uint32_t> &cmdArgs) {
+    // set memory to physical mode
+    PMCB temp;
+    memory.get_PMCB(temp);
+    temp.vm_enable = false;
+    memory.set_PMCB(temp);
+    
     // Allocate the specified memory size
     Addr vaddr = cmdArgs.at(0);
     Addr size = cmdArgs.at(1);
     
+    std::cout << bitset<32>(vaddr) << std::endl;
+    Addr addr_l1 = vaddr >> 22;
+    Addr addr_l2 = (vaddr >> 12) & 0xFFF;
+//    std::cout << bitset<32>(addr_l2) << std::endl;
+    
     if(vaddr % 0x1000 == 0 && size % 0x1000 == 0)
     {
-	Addr page_count = (size + mem::kPageSize - 1) / mem::kPageSize;
-
-	// make sure pmcb is in virtual mode
-	pmcb.vm_enable = true;
+	Addr page_count = (size + mem::kPageSize - 1) / mem::kPageSize;        
 	
-	// allocate page frames for size, starting at vadress
-//	pfa.Allocate(vaddr, size, )
+        std::vector<uint32_t> page_frames;
+	pfa.Allocate(page_count, page_frames);
+        
+        for(int i=0; i<page_frames.size(); i++)
+        {
+            clearFrame(page_frames[i]);
+            
+            uint32_t page_table_entry = page_frames[i];
+//            std::cout << page_frames[i] << std::endl;
+            
+            page_table_entry = (page_table_entry << 13) | 3; // should set far right two bits (writa allowed and page present) to 1
+//            std::cout << bitset<32>(page_table_entry) << std::endl;
+            
+            uint8_t arr[4];
+            arr[0] = page_table_entry >> 24;
+            arr[1] = page_table_entry >> 16;
+            arr[2] = page_table_entry >> 8;
+            arr[3] = page_table_entry;
+            
+//            std::cout << bitset<8>(arr[0])<< bitset<8>(arr[1])<< bitset<8>(arr[2])<< bitset<8>(arr[3])<<std::endl;
+//            std::cout << addr_l1 << std::endl;
+            memory.put_bytes(temp.page_table_base+addr_l1, sizeof(uint32_t), arr);
+//            printFrame(0);
+            
+            page_table_entry = vaddr;
+            page_table_entry = (page_table_entry << 20) | 3;
+            
+            arr[0] = page_table_entry >> 24;
+            arr[1] = page_table_entry >> 16;
+            arr[2] = page_table_entry >> 8;
+            arr[3] = page_table_entry;
+            
+            // putting data in second level page table
+            memory.put_bytes(page_frames[i]*4096 + addr_l2, sizeof(uint32_t), arr);
+//            printFrame(0);
+        }
+        
+        
     }
     else
     {
 	std::cout << "vaddr or size not correct multiples" << std::endl;
     }
+}
+
+void ProcessTrace::clearFrame(uint32_t startAddress)
+{
+    uint8_t data = 0;
+    
+    for(int i=0; i<4096; i++)
+    {
+        memory.put_byte(startAddress + i, &data);
+    }
+}
+
+void ProcessTrace::printFrame(uint32_t startAddress)
+{
+    uint8_t data;
+    
+    for(int i=0; i<4096; i++)
+    {
+        memory.get_byte(&data, (startAddress*4096) + i);
+        std::cout << std::bitset<8>(data);
+//        std::cout << " ";
+    }
+    std::cout << std::endl;
+}
+
+void ProcessTrace::changeVirtual(bool val)
+{
+    
 }
 
 void ProcessTrace::CmdCompare(const std::string &line,
@@ -159,15 +251,11 @@ void ProcessTrace::CmdCompare(const std::string &line,
 
 //    std::cout << std::hex << addr << std::endl;
     memory.ToPhysical(addr, addr, false);
+    std::cout << bitset<32>(addr) << std::endl;
     
     // Compare specified byte values
     size_t num_bytes = cmdArgs.size() - 1;
     uint8_t buffer[num_bytes];
-    
-//    PMCB p;
-//    memory.get_PMCB(p);
-//    p.vm_enable = 0;
-//    memory.set_PMCB(p);
     
     memory.get_bytes(buffer, addr, num_bytes);
 
@@ -239,4 +327,9 @@ void ProcessTrace::CmdDump(const std::string &line,
             << static_cast<uint32_t> (byte_val);
   }
   cout << "\n";
+}
+
+void ProcessTrace::CmdWritable(const std::string &line, const std::string &cmd, const std::vector<uint32_t> &cmdArgs)
+{
+    
 }

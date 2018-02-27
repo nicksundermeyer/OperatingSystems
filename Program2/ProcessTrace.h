@@ -143,6 +143,13 @@ private:
   void CmdDump(const std::string &line, 
                const std::string &cmd, 
                const std::vector<uint32_t> &cmdArgs);
+  void CmdWritable(const std::string &line, 
+               const std::string &cmd, 
+               const std::vector<uint32_t> &cmdArgs);
+  
+  void clearFrame(uint32_t startAddress);
+  void printFrame(uint32_t startAddress);
+  void changeVirtual(bool val);
 };
 
 #endif /* PROCESSTRACE_H */
