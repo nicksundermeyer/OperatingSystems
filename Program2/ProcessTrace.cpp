@@ -157,46 +157,57 @@ void ProcessTrace::CmdAlloc(const std::string &line,
     temp.vm_enable = false;
     memory.set_PMCB(temp);
     
-    // Allocate the specified memory size
+    // Get full vaddress and size of the memory to allocate
     Addr vaddr = cmdArgs.at(0);
     Addr size = cmdArgs.at(1);
     
-    std::cout << bitset<32>(vaddr) << std::endl;
-    Addr addr_l1 = vaddr >> 22;
-    Addr addr_l2 = (vaddr >> 12) & 0xFFF;
-//    std::cout << bitset<32>(addr_l2) << std::endl;
-    
+    // check that address is correct
     if(vaddr % 0x1000 == 0 && size % 0x1000 == 0)
     {
+	// Use shifts to mask for the left 10 bits (level 1 address) and middle 10 (level 2 address)
+	Addr addr_l1 = vaddr >> 22;
+	Addr addr_l2 = (vaddr >> 12) & 0xFFF;
+	
+	// calculate number of page frames needed
 	Addr page_count = (size + mem::kPageSize - 1) / mem::kPageSize;        
 	
+	// allocate the page frames from the page frame allocator
+	// store the frames temporarily in a vector
         std::vector<uint32_t> page_frames;
 	pfa.Allocate(page_count, page_frames);
         
+	// for each page frame we allocated
         for(int i=0; i<page_frames.size(); i++)
         {
+	    // use helper function to set the page table to all 0's at the beginning
             clearFrame(page_frames[i]);
             
+	    // writing level 2 table address to level 1 table
+	    
             uint32_t page_table_entry = page_frames[i];
-//            std::cout << page_frames[i] << std::endl;
             
-            page_table_entry = (page_table_entry << 13) | 3; // should set far right two bits (writa allowed and page present) to 1
-//            std::cout << bitset<32>(page_table_entry) << std::endl;
+	    // get the page table entry vaddress, shift left for second level page frame number
+	    // mask to set far right two bits (write allowed and page present) to 1
+            page_table_entry = (page_table_entry << 13) | 3;
             
+	    // convert to uint8_t array to use in put_bytes
             uint8_t arr[4];
             arr[0] = page_table_entry >> 24;
             arr[1] = page_table_entry >> 16;
             arr[2] = page_table_entry >> 8;
             arr[3] = page_table_entry;
             
-//            std::cout << bitset<8>(arr[0])<< bitset<8>(arr[1])<< bitset<8>(arr[2])<< bitset<8>(arr[3])<<std::endl;
-//            std::cout << addr_l1 << std::endl;
+	    // write bytes to memory at the base address + our offset
             memory.put_bytes(temp.page_table_base+addr_l1, sizeof(uint32_t), arr);
-//            printFrame(0);
             
+	    // writing offset in level 2 page table
+	    
+	    // take full vaddress and shift out the left 20 bits to leave the lower 12 bits
+	    // mask with 3 to set write allowed and page present bits
             page_table_entry = vaddr;
             page_table_entry = (page_table_entry << 20) | 3;
             
+	    // convert to uin8_t array
             arr[0] = page_table_entry >> 24;
             arr[1] = page_table_entry >> 16;
             arr[2] = page_table_entry >> 8;
@@ -204,10 +215,7 @@ void ProcessTrace::CmdAlloc(const std::string &line,
             
             // putting data in second level page table
             memory.put_bytes(page_frames[i]*4096 + addr_l2, sizeof(uint32_t), arr);
-//            printFrame(0);
         }
-        
-        
     }
     else
     {
@@ -236,11 +244,6 @@ void ProcessTrace::printFrame(uint32_t startAddress)
 //        std::cout << " ";
     }
     std::cout << std::endl;
-}
-
-void ProcessTrace::changeVirtual(bool val)
-{
-    
 }
 
 void ProcessTrace::CmdCompare(const std::string &line,
