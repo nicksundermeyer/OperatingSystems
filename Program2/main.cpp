@@ -26,9 +26,11 @@ int main(int argc, char** argv) {
     // create memory, create and set PMCB
     mem::MMU memory(256);
     mem::PMCB pmcb;
-    PageFrameAllocator pfa(256, memory);
-           
+    
+    // allocate page frames to memory in physical mode
+    pmcb.vm_enable = false;
     memory.set_PMCB(pmcb);
+    PageFrameAllocator pfa(256, memory);
     
 //    ProcessTrace p(argv[1], memory, pmcb);
     ProcessTrace p("trace1v.txt", memory, pmcb, pfa);

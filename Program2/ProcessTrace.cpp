@@ -40,6 +40,16 @@ ProcessTrace::ProcessTrace(std::string file_name_, MMU &memoryptr, PMCB &pmcbptr
     cerr << "ERROR: failed to open trace file: " << file_name << "\n";
     exit(2);
   }
+  // put memory in physical mode
+  std::vector<uint32_t> page_frames;
+  PMCB temp;
+  memory.get_PMCB(temp);
+  temp.vm_enable = false;
+  memory.set_PMCB(temp);
+  
+  // allocate one page frame for the top level page table
+  pfa.Allocate(3, page_frames);
+  std::cout << page_frames[0] << ":" << page_frames[1] << ":" << page_frames[2] << std::endl;
 }
 
 ProcessTrace::~ProcessTrace() {
@@ -78,8 +88,11 @@ void ProcessTrace::Execute(void) {
 	}
 	catch(const std::exception& e)
 	{
-//	    std::cout << e.what() << std::endl;
-	    pmcb.operation_state = mem::PMCB::NONE;
+	    PMCB temp;
+	    memory.get_PMCB(temp);
+	    std::cout << "Exception: " << temp.next_vaddress << " " << e.what() << std::endl;
+	    temp.operation_state = mem::PMCB::NONE;
+	    memory.set_PMCB(temp);
 	}
     }
 }
@@ -119,15 +132,23 @@ void ProcessTrace::CmdAlloc(const std::string &line,
                             const std::string &cmd, 
                             const vector<uint32_t> &cmdArgs) {
     // Allocate the specified memory size
-    Addr page_count = (cmdArgs.at(0) + mem::kPageSize - 1) / mem::kPageSize;
+    Addr vaddr = cmdArgs.at(0);
+    Addr size = cmdArgs.at(1);
     
-    // put mmu in physical mode before allocating pages
-    pmcb.vm_enable = false;
-    for (Addr i=0; i<page_count; i++){
-//        pfa.Allocate(1, )
+    if(vaddr % 0x1000 == 0 && size % 0x1000 == 0)
+    {
+	Addr page_count = (size + mem::kPageSize - 1) / mem::kPageSize;
+
+	// make sure pmcb is in virtual mode
+	pmcb.vm_enable = true;
+	
+	// allocate page frames for size, starting at vadress
+//	pfa.Allocate(vaddr, size, )
     }
-    pmcb.vm_enable = true;
-    
+    else
+    {
+	std::cout << "vaddr or size not correct multiples" << std::endl;
+    }
 }
 
 void ProcessTrace::CmdCompare(const std::string &line,

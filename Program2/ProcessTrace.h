@@ -102,6 +102,10 @@ private:
   mem::PMCB &pmcb;
   PageFrameAllocator &pfa;
   
+  // Page tables
+  std::vector<uint32_t> page_table_l1;
+  std::vector<uint32_t> page_table_l2;
+  
   /**
    * ParseCommand - parse a trace file command.
    *   Aborts program if invalid trace file.
