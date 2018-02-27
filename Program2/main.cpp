@@ -32,8 +32,7 @@ int main(int argc, char** argv) {
     memory.set_PMCB(pmcb);
     PageFrameAllocator pfa(256, memory);
     
-//    ProcessTrace p(argv[1], memory, pmcb);
-    ProcessTrace p("trace1v.txt", memory, pmcb, pfa);
+    ProcessTrace p(argv[1], memory, pmcb, pfa);
     p.Execute();
     return 0;
 }

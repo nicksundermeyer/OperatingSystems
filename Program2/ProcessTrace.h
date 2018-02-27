@@ -147,9 +147,20 @@ private:
                const std::string &cmd, 
                const std::vector<uint32_t> &cmdArgs);
   
-  void clearFrame(uint32_t startAddress);
-  void printFrame(uint32_t startAddress);
-  void changeVirtual(bool val);
+    /**
+    * clearFrame - set all bits in a frame to 0
+    * 
+    * @param startAddress base address of page
+    */
+    void clearFrame(uint32_t startAddress);
+  
+    /**
+    * printFrame - print the contents of a frame for debugging
+    * 
+    * @param startAddress base address of page
+    */
+    void printFrame(uint32_t startAddress);
+
 };
 
 #endif /* PROCESSTRACE_H */
