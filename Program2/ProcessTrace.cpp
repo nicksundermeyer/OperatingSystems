@@ -241,7 +241,7 @@ void ProcessTrace::printFrame(uint32_t startAddress)
     {
         memory.get_byte(&data, (startAddress*4096) + i);
         std::cout << std::bitset<8>(data);
-//        std::cout << " ";
+
     }
     std::cout << std::endl;
 }
@@ -252,7 +252,7 @@ void ProcessTrace::CmdCompare(const std::string &line,
     
     uint32_t addr = cmdArgs.at(0);
 
-//    std::cout << std::hex << addr << std::endl;
+
     memory.ToPhysical(addr, addr, false);
     std::cout << bitset<32>(addr) << std::endl;
     
@@ -334,5 +334,7 @@ void ProcessTrace::CmdDump(const std::string &line,
 
 void ProcessTrace::CmdWritable(const std::string &line, const std::string &cmd, const std::vector<uint32_t> &cmdArgs)
 {
-    
+    /*
+    Update size bytes of memory in the second level page table to to specified status
+    */
 }
