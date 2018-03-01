@@ -42,9 +42,19 @@ int numResources;   // actual number of resources
 //          of Available, false otherwise.
 bool IsRequestLessEqual(int i) {
   bool result = true;
-  //
-  // TODO: implement this function
-  //
+  
+  for(int j=0; j<numResources; j++)
+  {
+      if(Request[i][j] > Available[j])
+      {
+	  result = false;
+      }
+      else
+      {
+	  Available[j] -= Request[i][j];
+      }
+  }
+  
   return result;
 }
 
@@ -53,20 +63,60 @@ bool IsRequestLessEqual(int i) {
 //
 // @param i - index of row in Allocation array
 void AddToAvailable(int i) {
-  //
-  // TODO: implement this function
-  //
+    for(int j=0; j<kMaxResources; j++)
+    {
+	Available[j] += Allocation[i][j];
+    }
 }
 
 // PrintDeadlocks - print indices of deadlocked processes
 //
 void PrintDeadlocks(void) {
-  //
-  // TODO: implement this function
-  //
+    std::cout << "Deadlocked processes:";
     
-    for(int i=0; i<numProcesses; i++){
+    bool deadlocked[numProcesses];
     
+    for(int i=0; i<numProcesses; i++)
+	deadlocked[i] = false;
+    
+    int currentProcess;
+    
+    for(int r=0; r<numResources; r++)
+    {
+	currentProcess = -1;
+	
+	for(int p=0; p<numProcesses; p++)
+	{
+	    // check if request is being made for the resource
+	    if(Request[p][r] != 0)
+	    {
+		currentProcess = p;
+	    }
+	}
+	
+	if(currentProcess != -1)
+	{
+	    if(IsRequestLessEqual(currentProcess))
+	    {
+		AddToAvailable(currentProcess);
+	    }
+	    else
+	    {
+		deadlocked[currentProcess] = true;
+	    }
+	}
+	else
+	{
+	    AddToAvailable(r);
+	}
+    }
+    
+    for(int j=0; j<numProcesses; j++)
+    {
+	if(deadlocked[j])
+	{
+	    std::cout << " " << j;
+	}
     }
 }
 
@@ -156,7 +206,7 @@ void ReadSystemConfig(const char *fileName) {
   }
 }
 
-} // namespace
+}
 
 int main(int argc, char *argv[]) {
   // Read system configuration
@@ -164,8 +214,7 @@ int main(int argc, char *argv[]) {
     cerr << "usage: lab5 filename\n";
     exit(1);
   }
-  //ReadSystemConfig(argv[1]);
-  ReadSystemConfig("simple_deadlock.txt");
+  ReadSystemConfig(argv[1]);
   PrintDeadlocks();
 
   return 0;
