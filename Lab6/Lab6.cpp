@@ -131,39 +131,31 @@ int OptimalPageReplacement(const vector<int> &trace,
                            const vector<int> &frameUsage,
                            const vector<int> accessTime) {
     int victimPageFrame = 0;
-  // TODO: implement the page replacement strategy
-  //       here, setting victimPageFrame to the frame
-  //       number of the page to be replaced.
-//
-//    std::cout << "trace index " << traceIndex << std::endl;
-//    std::cout << "frame count " << frameCount << std::endl;
-//  for(int i=0; i<trace.size(); i++){
-//      std::cout << trace[i] << " ";
-//  }
-//  std::cout << std::endl;
+    // TODO: implement the page replacement strategy
+    //       here, setting victimPageFrame to the frame
+    //       number of the page to be replaced.
     
+    
+    // add all frames to a list
     std::list<int> frames;
     for(int i=0; i<frameCount; i++){
         frames.push_back(frameUsage[i * trace.size() + traceIndex]);
     }
     
+    // remove frames that appear in trace unless there is only one left
     for(int i=traceIndex; i<trace.size(); i++){
         if(frames.size() > 1){
             frames.remove(trace[i]);
         }
     }
-    std::cout << frames.front() << std::endl;
     
+    // get index of victim frame
     for(int i=0; i<frameCount; i++){
         if(frameUsage[i * trace.size() + traceIndex] == frames.front()){
             victimPageFrame = i;
         }
     }
-    
-   
-    
 
-  
   return victimPageFrame;  // return the page frame to replace
 }
 
@@ -186,10 +178,12 @@ int FIFOPageReplacement(const vector<int> &trace,
                         int frameCount,
                         const vector<int> &frameUsage,
                         const vector<int> accessTime) {
-  int victimPageFrame = 0;
-  // TODO: implement the page replacement strategy
-  //       here, setting victimPageFrame to the frame
-  //       number of the page to be replaced.
+    int victimPageFrame = 0;
+    // TODO: implement the page replacement strategy
+    //       here, setting victimPageFrame to the frame
+    //       number of the page to be replaced.
+    
+    
   
   return victimPageFrame;  // return the page frame to replace
 }
@@ -218,7 +212,15 @@ int LRUPageReplacement(const vector<int> &trace,
   // TODO: implement the page replacement strategy
   //       here, setting victimPageFrame to the frame
   //       number of the page to be replaced.
-  
+    
+    int min_index = 0;
+    for (int i=1; i<accessTime.size(); i++){
+        if (accessTime[i] < accessTime[min_index]){
+            min_index = i;
+        }
+    }
+    victimPageFrame = min_index;
+    
   return victimPageFrame;  // return the page frame to replace
 }
 
