@@ -183,9 +183,39 @@ int FIFOPageReplacement(const vector<int> &trace,
     //       here, setting victimPageFrame to the frame
     //       number of the page to be replaced.
     
+    // max distance from when process was added
+    int max_dist = 0;
+    int max_dist_frame = 0;
     
-  
-  return victimPageFrame;  // return the page frame to replace
+    // for each frame
+    for(int r=0; r<frameCount; r++)
+    {
+	// push single frame into vector
+	std::vector<int> frame;
+	for(int i=0; i<trace.size(); i++){
+	    frame.push_back(frameUsage[r * trace.size() + i]);
+	}
+	
+	// loop through backwards until we reach when the process was added
+	for(int j=traceIndex; j>-1; j--)
+	{
+	    // if we have reached when the process was added, or have reached the beginning
+	    if(frame[j] != frame[traceIndex] || j == 0)
+	    {
+		// if the current distance is longer than the current max, update it
+		if((traceIndex-j) > max_dist)
+		{
+		    max_dist = traceIndex-j;
+		    max_dist_frame = r;
+		}
+		break;
+	    }
+	}
+    }
+    
+    victimPageFrame = max_dist_frame;
+    
+    return victimPageFrame;  // return the page frame to replace
 }
 
 // LRUPageReplacement - use the LRU page replacement
@@ -318,10 +348,10 @@ int main(int argc, char *argv[]) {
   
   // Compute page replacement with Round Robin algorithm
   // TODO: comment this out when you implement the other algorithms.
-  ExecuteReferenceString("Round Robin", trace, frameCount,
-                         RoundRobinPageReplacement);
+//  ExecuteReferenceString("Round Robin", trace, frameCount,
+//                         RoundRobinPageReplacement);
   
-  // Compute page replacement with FIFO algorithm
+  // Compute page replacement with Optimal algorithm
   ExecuteReferenceString("Optimal", trace, frameCount,
                          OptimalPageReplacement);
   
