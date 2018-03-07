@@ -1,0 +1,33 @@
+1:# trace6v_pagefaults.txt - test page fault exception handling
+2:alloc    40000000  1000
+3:alloc    753ff000  3000
+4:alloc    0affe000  4000
+5:alloc    fffff000  1000
+6:# Each of the following lines should generate a PageFaultException
+7:compare  3fffffff  0
+Exception type PageFaultException occurred at input line 7 at virtual address 0x3fffffff: 
+8:compare  40000fff  0     0
+Exception type PageFaultException occurred at input line 8 at virtual address 0x40001000: 
+9:put      753fefff  37
+Exception type PageFaultException occurred at input line 9 at virtual address 0x753fefff: 
+10:put      b001ffe   1     2   3  4
+Exception type PageFaultException occurred at input line 10 at virtual address 0x0b002000: 
+11:dump     b001ffe   4
+b001ffe
+ 01 02
+Exception type PageFaultException occurred at input line 11 at virtual address 0x0b002000: 
+12:# Test that fill completes up to last byte before page fault
+13:fill     fffff000  1001  ab
+Exception type PageFaultException occurred at input line 13 at virtual address 0x00000000: 
+14:compare  fffffffe  ab    ab
+15:# Test that copy completes up to the read page fault (copy page faults, compare should succeed)
+16:put      75401ffe  fe    ff
+17:copy     0affe000  75401000  1001
+Exception type PageFaultException on read occurred at input line 17 at virtual address 0x75402000: 
+18:compare  0affeffe  fe    ff
+19:# Test copy write page fault and make sure write succeeded up to the fault
+20:put      754007fe  ae    af
+21:copy     40000000  753ff800  1001
+Exception type PageFaultException on write occurred at input line 21 at virtual address 0x40001000: 
+22:compare  40000ffe  ae    af
+23:# end of trace

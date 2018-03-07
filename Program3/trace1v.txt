@@ -1,0 +1,19 @@
+# trace1v.txt - simple trace file
+alloc    40000000  1000
+# Make sure allocated page is cleared to 0 by checking scattered blocks of bytes
+compare  40000000  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+compare  40000800  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+compare  40000ff0  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+fill     40000000  1000  55
+put      400000a0  81    82  83  84  85
+put      400000a2  92
+compare  400000a0  81    82  92  84  85
+put      400000ff  aa
+compare  400000ff  aa
+fill     4000000b  3     de
+compare  4000000a  55    de  de  de  55
+fill     40000020  10    cc
+copy     40000021  400000a0  6
+compare  40000020  cc    81  82  92  84  85
+dump     40000000  100
+# end of trace

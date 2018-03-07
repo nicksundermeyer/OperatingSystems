@@ -1,0 +1,107 @@
+1:# trace4v_multi-l2-tables.txt - test allocation of memory over multiple L2 tables
+2:alloc    40000000  1000
+3:fill     40000000  100   7f
+4:put      400000a0  81    82  83  84  85
+5:put      400000a2  92
+6:compare  400000a0  81    82  92  84  85
+7:put      400000ff  aa
+8:compare  400000ff  aa
+9:fill     4000000b  3     de
+10:compare  4000000a  7f     de  de  de  7f
+11:dump     40000000  100
+40000000
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f de de de 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 81 82 92 84 85 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f aa
+12:alloc    753ff000  3000
+13:fill     753ff000  3000  ff
+14:put      753ffff0  0     1   2   3   4   5   6  7  8  9  a  b  c  d  e  f
+15:compare  753ffff0  0     1   2   3   4   5   6  7  8  9  a  b  c  d  e  f
+16:dump     753fffef  12
+753fffef
+ ff 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e
+ 0f ff
+17:alloc    0affe000  4000
+18:fill     0affe000  1800  a1
+19:fill     0afff800  1800  a2
+20:fill     0b001000  1000  a3
+21:compare  753ffff0  0     1   2   3   4   5   6  7  8  9  a  b  c  d  e  f
+22:dump     753fffef  12
+753fffef
+ ff 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e
+ 0f ff
+23:compare  0afff7fe  a1    a1  a2  a2
+24:dump     0afff7f0  20
+afff7f0
+ a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1
+ a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2
+25:compare  0b000ffe  a2    a2  a3  a3
+26:dump     0b000ff0  20
+b000ff0
+ a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2
+ a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3
+27:dump     0b001ff0  10
+b001ff0
+ a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3
+28:alloc    fffff000  1000
+29:fill     ffffff00  100   0
+30:put      ffffffa0  81    82  83  84  85
+31:put      ffffffa2  92
+32:compare  ffffffa0  81    82  92  84  85
+33:put      ffffffff  aa
+34:compare  ffffffff  aa
+35:fill     ffffff0b  3     de
+36:compare  ffffff0a  0     de  de  de  0
+37:dump     ffffff00  100
+ffffff00
+ 00 00 00 00 00 00 00 00 00 00 00 de de de 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 81 82 92 84 85 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 aa
+38:copy     753ff000  0affe000  3000
+39:# The following compare should fail at every byte
+40:compare  753ffff0  0     1   2   3   4   5   6  7  8  9  a  b  c  d  e  f
+compare error at address 753ffff0, expected 0, actual is a1
+compare error at address 753ffff1, expected 1, actual is a1
+compare error at address 753ffff2, expected 2, actual is a1
+compare error at address 753ffff3, expected 3, actual is a1
+compare error at address 753ffff4, expected 4, actual is a1
+compare error at address 753ffff5, expected 5, actual is a1
+compare error at address 753ffff6, expected 6, actual is a1
+compare error at address 753ffff7, expected 7, actual is a1
+compare error at address 753ffff8, expected 8, actual is a1
+compare error at address 753ffff9, expected 9, actual is a1
+compare error at address 753ffffa, expected a, actual is a1
+compare error at address 753ffffb, expected b, actual is a1
+compare error at address 753ffffc, expected c, actual is a1
+compare error at address 753ffffd, expected d, actual is a1
+compare error at address 753ffffe, expected e, actual is a1
+compare error at address 753fffff, expected f, actual is a1
+41:# The following compare should succeed
+42:compare  754007fe  a1    a1  a2  a2
+43:# end of trace

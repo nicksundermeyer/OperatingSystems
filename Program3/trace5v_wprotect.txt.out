@@ -1,0 +1,19 @@
+1:# trace5v_wprotect.txt - test write protections
+2:alloc     40000000  1000
+3:# Set page non-writable
+4:writable  40000000  1000  0
+5:# Next line should generate a WritePermissionFaultException
+6:put       40000010  12
+Exception type WritePermissionFaultException occurred at input line 6 at virtual address 0x40000010: 
+7:compare   4000000f  0     0   0
+8:# Next line should generate a WritePermissionFaultException
+9:fill      40000100  4     7f
+Exception type WritePermissionFaultException occurred at input line 9 at virtual address 0x40000100: 
+10:compare   400000ff  0     0   0   0   0   0
+11:# Set page writable; following lines should run without exceptions
+12:writable  40000000  1000  1
+13:put       40000010  12
+14:compare   4000000f  0     12  0
+15:fill      40000100  4     7f
+16:compare   400000ff  0     7f  7f  7f  7f  0
+17:# end of trace
