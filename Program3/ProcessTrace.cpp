@@ -31,6 +31,7 @@ ProcessTrace::ProcessTrace(MMU &memory_,
                            string file_name_) 
 : memory(memory_), allocator(allocator_), file_name(file_name_), line_number(0) {
     terminate_info = "";
+    num_pages = 0;
     
   // Open the trace file.  Abort program if can't open.
   trace.open(file_name, std::ios_base::in);
@@ -124,11 +125,10 @@ void ProcessTrace::CmdQuota(const string &line,
     quota = cmdArgs.at(0);
 }
 
-void ProcessTrace::CmdAlloc(uint32_t vaddr, int count) {
+void ProcessTrace::CmdAlloc(uint32_t vaddr, uint32_t count) {
   // Get arguments
 //  Addr vaddr = cmdArgs.at(0);
 //  int count = cmdArgs.at(1) / kPageSize;
-    count = count / kPageSize;
   
   // Switch to physical mode
   memory.get_PMCB(vmem_pmcb);
@@ -341,12 +341,12 @@ void ProcessTrace::CmdWritable(const string &line,
 void ProcessTrace::PrintAndClearException(const string &type, 
                                           MemorySubsystemException e) {
   memory.get_PMCB(vmem_pmcb);
-//  cout << "Exception type " << type 
-//          << " occurred at input line " << std::dec << std::setw(1) 
-//          << line_number << " at virtual address 0x" 
-//          << std::hex << std::setw(8) << std::setfill('0') 
-//          << vmem_pmcb.next_vaddress 
-//          << ": " << e.what() << "\n";
+  cout << "Exception type " << type 
+          << " occurred at input line " << std::dec << std::setw(1) 
+          << line_number << " at virtual address 0x" 
+          << std::hex << std::setw(8) << std::setfill('0') 
+          << vmem_pmcb.next_vaddress 
+          << ": " << e.what() << "\n";
   vmem_pmcb.operation_state = PMCB::NONE;
   memory.set_PMCB(vmem_pmcb);
 }
