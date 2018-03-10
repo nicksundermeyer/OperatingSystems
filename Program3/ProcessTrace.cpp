@@ -30,6 +30,8 @@ ProcessTrace::ProcessTrace(MMU &memory_,
                            PageFrameAllocator &allocator_, 
                            string file_name_) 
 : memory(memory_), allocator(allocator_), file_name(file_name_), line_number(0) {
+    terminate_info = "";
+    
   // Open the trace file.  Abort program if can't open.
   trace.open(file_name, std::ios_base::in);
   if (!trace.is_open()) {
@@ -56,8 +58,8 @@ void ProcessTrace::Execute(void) {
   
   // Select the command to execute
   while (ParseCommand(line, cmd, cmdArgs)) {
-    if (cmd == "alloc" ) {
-      CmdAlloc(line, cmd, cmdArgs);    // allocate memory
+    if (cmd == "quota" ) {
+      CmdQuota(line, cmd, cmdArgs);    // allocate memory
     } else if (cmd == "compare") {
       CmdCompare(line, cmd, cmdArgs);  // get and compare multiple bytes
     } else if (cmd == "put") {
@@ -116,12 +118,17 @@ bool ProcessTrace::ParseCommand(
   }
 }
 
-void ProcessTrace::CmdAlloc(const string &line, 
+void ProcessTrace::CmdQuota(const string &line, 
                             const string &cmd, 
                             const vector<uint32_t> &cmdArgs) {
+    quota = cmdArgs.at(0);
+}
+
+void ProcessTrace::CmdAlloc(uint32_t vaddr, int count) {
   // Get arguments
-  Addr vaddr = cmdArgs.at(0);
-  int count = cmdArgs.at(1) / kPageSize;
+//  Addr vaddr = cmdArgs.at(0);
+//  int count = cmdArgs.at(1) / kPageSize;
+    count = count / kPageSize;
   
   // Switch to physical mode
   memory.get_PMCB(vmem_pmcb);
@@ -133,6 +140,7 @@ void ProcessTrace::CmdAlloc(const string &line,
   while (count-- > 0) {
     AllocateAndMapPage(vaddr);
     vaddr += 0x1000;
+    num_pages++;
   }
   
   // Switch back to virtual mode
@@ -176,6 +184,22 @@ void ProcessTrace::CmdPut(const string &line,
     memory.put_bytes(addr, num_bytes, buffer);
   }  catch(PageFaultException e) {
     PrintAndClearException("PageFaultException", e);
+    
+    // get pmcb to store current state of the process
+    memory.get_PMCB(vmem_pmcb);
+    
+    if(num_pages + vmem_pmcb.remaining_count/kPageSize < quota)
+    {
+	CmdAlloc(addr, vmem_pmcb.remaining_count);
+    }
+    else
+    {
+	terminate_info = "Exceeded quota";
+	vmem_pmcb.operation_state = PMCB::NONE;
+    }
+    
+    // set pmcb again to resume/stop operation
+    memory.set_PMCB(vmem_pmcb);
   }  catch(WritePermissionFaultException e) {
     PrintAndClearException("WritePermissionFaultException", e);
   }
@@ -207,6 +231,22 @@ void ProcessTrace::CmdCopy(const string &line,
       memory.put_bytes(dst, bytes_read, buffer);
     } catch(PageFaultException e) {
       PrintAndClearException("PageFaultException on write", e);
+      
+      // get pmcb to store current state of the process
+    memory.get_PMCB(vmem_pmcb);
+
+    if(num_pages + vmem_pmcb.remaining_count/kPageSize < quota)
+    {
+	CmdAlloc(dst, vmem_pmcb.remaining_count);
+    }
+    else
+    {
+	terminate_info = "Exceeded quota";
+	vmem_pmcb.operation_state = PMCB::NONE;
+    }
+
+    // set pmcb again to resume/stop operation
+    memory.set_PMCB(vmem_pmcb);
     } catch(WritePermissionFaultException e) {
       PrintAndClearException("WritePermissionFaultException", e);
     }
@@ -226,6 +266,22 @@ void ProcessTrace::CmdFill(const string &line,
     }
   } catch(PageFaultException e) {
     PrintAndClearException("PageFaultException", e);
+    
+    // get pmcb to store current state of the process
+    memory.get_PMCB(vmem_pmcb);
+    
+    if(num_pages + vmem_pmcb.remaining_count/kPageSize < quota)
+    {
+	CmdAlloc(addr, vmem_pmcb.remaining_count);
+    }
+    else
+    {
+	terminate_info = "Exceeded quota";
+	vmem_pmcb.operation_state = PMCB::NONE;
+    }
+    
+    // set pmcb again to resume/stop operation
+    memory.set_PMCB(vmem_pmcb);
   } catch(WritePermissionFaultException e) {
     PrintAndClearException("WritePermissionFaultException", e);
   }
@@ -285,12 +341,12 @@ void ProcessTrace::CmdWritable(const string &line,
 void ProcessTrace::PrintAndClearException(const string &type, 
                                           MemorySubsystemException e) {
   memory.get_PMCB(vmem_pmcb);
-  cout << "Exception type " << type 
-          << " occurred at input line " << std::dec << std::setw(1) 
-          << line_number << " at virtual address 0x" 
-          << std::hex << std::setw(8) << std::setfill('0') 
-          << vmem_pmcb.next_vaddress 
-          << ": " << e.what() << "\n";
+//  cout << "Exception type " << type 
+//          << " occurred at input line " << std::dec << std::setw(1) 
+//          << line_number << " at virtual address 0x" 
+//          << std::hex << std::setw(8) << std::setfill('0') 
+//          << vmem_pmcb.next_vaddress 
+//          << ": " << e.what() << "\n";
   vmem_pmcb.operation_state = PMCB::NONE;
   memory.set_PMCB(vmem_pmcb);
 }

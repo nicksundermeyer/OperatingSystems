@@ -23,14 +23,14 @@
  */
 int main(int argc, char* argv[]) {
   // Use command line argument as file name
-  if (argc != 2) {
-    std::cerr << "usage: Lab2 trace_file\n";
-    exit(1);
-  }
+//  if (argc != 2) {
+//    std::cerr << "usage: Lab2 trace_file\n";
+//    exit(1);
+//  }
   
   mem::MMU memory(256);
   PageFrameAllocator allocator(memory);
-  ProcessTrace trace(memory, allocator, argv[1]);
+  ProcessTrace trace(memory, allocator, "trace1v.txt");
   trace.Execute();
   return 0;
 }

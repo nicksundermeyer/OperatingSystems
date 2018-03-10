@@ -120,6 +120,9 @@ private:
   std::string file_name;
   std::fstream trace;
   long line_number;
+  uint32_t quota;
+  uint32_t num_pages;
+  std::string terminate_info;
 
   // Memory contents
   mem::MMU &memory;
@@ -150,9 +153,10 @@ private:
    * @param cmd command, converted to all lower case
    * @param cmdArgs arguments to command
    */
-  void CmdAlloc(const std::string &line, 
+  void CmdQuota(const std::string &line, 
                 const std::string &cmd, 
                 const std::vector<uint32_t> &cmdArgs);
+  void CmdAlloc(uint32_t vaddr, int count);
   void CmdCompare(const std::string &line, 
               const std::string &cmd, 
               const std::vector<uint32_t> &cmdArgs);
