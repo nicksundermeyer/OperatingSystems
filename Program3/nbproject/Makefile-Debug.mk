@@ -68,13 +68,13 @@ LDLIBSOPTIONS=../MemorySubsystem/dist/Debug/GNU-Linux/libmemorysubsystem.a
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/program2
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/program3
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/program2: ../MemorySubsystem/dist/Debug/GNU-Linux/libmemorysubsystem.a
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/program3: ../MemorySubsystem/dist/Debug/GNU-Linux/libmemorysubsystem.a
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/program2: ${OBJECTFILES}
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/program3: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/program2 ${OBJECTFILES} ${LDLIBSOPTIONS}
+	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/program3 ${OBJECTFILES} ${LDLIBSOPTIONS}
 
 ${OBJECTDIR}/PageFrameAllocator.o: PageFrameAllocator.cpp
 	${MKDIR} -p ${OBJECTDIR}

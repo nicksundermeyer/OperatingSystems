@@ -1,0 +1,287 @@
+1:1:# trace1v.txt - simple trace file
+2:1:quota    1
+1:2:# trace2v_multi-page.txt
+2:2:#   Allocates multiple pages (in the same 2nd-level page table)
+1:3:# trace3v_high-addr.txt - simple test of access to last page in address space.
+2:3:quota    1
+1:4:# trace4v_multi-l2-tables.txt - test allocation of memory over multiple L2 tables
+2:4:quota    9
+1:5:# trace5v_wprotect.txt - test write protections
+2:5:quota     1
+1:6:# trace6v_pagefaults.txt - test page fault exception handling
+2:6:quota    0a
+3:1:# Write a single byte to cause page to be allocated (and compare to expected)
+4:1:put      400007ff  ff
+3:2:quota    7
+4:2:# Write a single byte to cause pages to be allocated (and compare to expected)
+3:3:# Write a single byte to cause page to be allocated (and compare to expected)
+4:3:put      fffff7ff  ff
+3:4:fill     40000000  100   7f
+4:4:put      400000a0  81    82  83  84  85
+3:5:# Initialize page (causes page to be allocated)
+4:5:fill      40000000  1000  aa
+3:6:# Fill some pages to cause memory to be allocated
+4:6:fill     40000000  1000  40
+5:1:compare  400007fe  00    ff  00
+6:1:# Make sure allocated page is cleared to 0 by checking scattered blocks of bytes
+5:2:put      010067ff  ff
+6:2:compare  010067fe  00    ff  00
+5:3:compare  fffff7fe  00    ff  00
+6:3:# Make sure allocated page is cleared to 0 by checking scattered blocks of bytes
+5:4:put      400000a2  92
+6:4:compare  400000a0  81    82  92  84  85
+5:5:# Set page non-writable
+6:5:writable  40000000  1000  0
+5:6:fill     753ff000  3000  75
+6:6:fill     0affe000  4000  0a
+7:1:compare  40000000  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+8:1:compare  40000800  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+7:2:put      010077ff  ff
+8:2:compare  010077fe  00    ff  00
+7:3:compare  fffff000  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+8:3:compare  fffff800  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+7:4:put      400000ff  aa
+8:4:compare  400000ff  aa
+7:5:# Next line should generate a WritePermissionFaultException
+8:5:put       40000010  12
+Exception type WritePermissionFaultException occurred at input line 8 at virtual address 0x40000010: 
+7:6:fill     fffff000  1000  ff
+8:6:# Each of the following lines should generate a PageFaultException
+9:1:compare  40000ff0  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+10:1:fill     40000000  1000  55
+9:2:put      010087ff  ff
+10:2:compare  010087fe  00    ff  00
+9:3:compare  fffffff0  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+10:3:fill     fffff000  1000  55
+9:4:fill     4000000b  3     de
+10:4:compare  4000000a  7f     de  de  de  7f
+9:5:compare   4000000f  aa    aa  aa
+10:5:# Next line should generate a WritePermissionFaultException
+9:6:compare  3fffffff  0
+Exception type PageFaultException occurred at input line 9 at virtual address 0x3fffffff: 
+10:6:compare  40000fff  40    40
+Exception type PageFaultException occurred at input line 10 at virtual address 0x40001000: 
+11:1:put      400000a0  81    82  83  84  85
+12:1:put      400000a2  92
+11:2:# Spot check pages cleared to 0
+12:2:compare  01006000  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+11:3:put      fffff0a0  81    82  83  84  85
+12:3:put      fffff0a2  92
+11:4:dump     40000000  100
+40000000
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f de de de 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 81 82 92 84 85 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f
+ 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f aa
+12:4:fill     753ff000  3000  ff
+11:5:fill      40000100  4     7f
+Exception type WritePermissionFaultException occurred at input line 11 at virtual address 0x40000100: 
+12:5:compare   400000ff  aa    aa  aa  aa  aa  aa  aa
+11:6:dump     b001ffe   4
+b001ffe
+ 0a 0a
+Exception type PageFaultException occurred at input line 11 at virtual address 0x0b002000: 
+12:6:# Test that copy completes up to the read page fault (copy page faults, compare should succeed)
+13:1:compare  400000a0  81    82  92  84  85
+14:1:put      400000ff  aa
+13:2:compare  01007000  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+14:2:compare  01008000  0     0   0   0   0   0  0  0  0  0  0  0  0  0  0
+13:3:compare  fffff0a0  81    82  92  84  85
+14:3:put      fffff0ff  aa
+13:4:put      753ffff0  0     1   2   3   4   5   6  7  8  9  a  b  c  d  e  f
+14:4:compare  753ffff0  0     1   2   3   4   5   6  7  8  9  a  b  c  d  e  f
+13:5:# Set page writable; following lines should run without exceptions
+14:5:writable  40000000  1000  1
+13:6:put      75401ffe  fe    ff
+14:6:copy     0affe000  75401000  1001
+Exception type PageFaultException on read occurred at input line 14 at virtual address 0x75402000: 
+15:1:compare  400000ff  aa
+16:1:fill     4000000b  3     de
+15:2:fill     01006000  3000  ff
+16:2:put      01006ff0  0     1   2   3   4  5  6  7  8  9  a  b  c  d  e  f
+15:3:compare  fffff0ff  aa
+16:3:fill     fffff00b  3     de
+15:4:dump     753fffef  12
+753fffef
+ ff 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e
+ 0f ff
+16:4:fill     0affe000  1800  a1
+15:5:put       40000010  12
+16:5:compare   4000000f  aa    12  aa
+15:6:compare  0affeffe  fe    ff
+16:6:# Test quota - the following line should terminate the process with quota exceeded
+17:1:compare  4000000a  55    de  de  de  55
+18:1:fill     40000020  10    cc
+17:2:compare  01006ff0  0     1   2   3   4  5  6  7  8  9  a  b  c  d  e  f
+18:2:dump     01006fef  12
+1006fef
+ ff 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e
+ 0f ff
+17:3:compare  fffff00a  55     de  de  de  55
+18:3:fill     fffff020  10    cc
+17:4:fill     0afff800  1800  a2
+18:4:fill     0b001000  1000  a3
+17:5:fill      40000100  4     7f
+18:5:compare   400000ff  aa    7f  7f  7f  7f  aa
+17:6:put      e123afff  ef    01
+ERROR: memory quota a exceeded
+17:6:TERMINATED
+19:1:copy     40000021  400000a0  6
+20:1:compare  40000020  cc    81  82  92  84  85
+19:2:fill     01023000  1800  a1
+20:2:fill     01024800  1800  a2
+19:3:fill     fffffff0  10    bb
+20:3:copy     fffffff1  fffff0a0  5
+19:4:compare  753ffff0  0     1   2   3   4   5   6  7  8  9  a  b  c  d  e  f
+20:4:dump     753fffef  12
+753fffef
+ ff 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e
+ 0f ff
+19:5:# end of trace
+19:5:TERMINATED
+21:1:dump     40000000  100
+40000000
+ 55 55 55 55 55 55 55 55 55 55 55 de de de 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ cc 81 82 92 84 85 55 cc cc cc cc cc cc cc cc cc
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 81 82 92 84 85 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 aa
+22:1:# end of trace
+21:2:fill     01026000  1000  a3
+22:2:compare  01006ff0  0     1   2   3   4  5  6  7  8  9  a  b  c  d  e  f
+21:3:compare  fffffff0  bb    81  82  92  84  85  bb bb bb bb bb bb bb bb bb bb
+22:3:dump     fffff000  100
+fffff000
+ 55 55 55 55 55 55 55 55 55 55 55 de de de 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ cc cc cc cc cc cc cc cc cc cc cc cc cc cc cc cc
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 81 82 92 84 85 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55
+ 55 55 55 55 55 55 55 55 55 55 55 55 55 55 55 aa
+21:4:compare  0afff7fe  a1    a1  a2  a2
+22:4:dump     0afff7f0  20
+afff7f0
+ a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1
+ a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2
+22:1:TERMINATED
+23:2:dump     01006fef  12
+1006fef
+ ff 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e
+ 0f ff
+24:2:compare  010247fe  a1    a1  a2  a2
+23:3:dump     fffffff0  10
+fffffff0
+ bb 81 82 92 84 85 bb bb bb bb bb bb bb bb bb bb
+24:3:# end of trace
+23:4:compare  0b000ffe  a2    a2  a3  a3
+24:4:dump     0b000ff0  20
+b000ff0
+ a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2
+ a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3
+25:2:dump     010247f0  20
+10247f0
+ a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1
+ a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2
+26:2:compare  01025ffe  a2    a2  a3  a3
+24:3:TERMINATED
+25:4:dump     0b001ff0  10
+b001ff0
+ a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3
+26:4:fill     ffffff00  100   0
+27:2:dump     01025ff0  20
+1025ff0
+ a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2 a2
+ a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3
+28:2:dump     01026ff0  10
+1026ff0
+ a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3 a3
+27:4:put      ffffffa0  81    82  83  84  85
+28:4:put      ffffffa2  92
+29:2:copy     01025000  01006ff0  10
+30:2:compare  01024fff  a2     0   1   2   3   4  5  6  7  8  9  a  b  c  d  e  f  a2
+29:4:compare  ffffffa0  81    82  92  84  85
+30:4:put      ffffffff  aa
+31:2:# The following line tests that compare will generate errors on mismatches.
+32:2:# There should be two mismatched bytes.
+31:4:compare  ffffffff  aa
+32:4:fill     ffffff0b  3     de
+33:2:compare  01024fff  a2     0   1   2   e   4  5  6  7  8  9  a  b  0  d  e  f  a2
+compare error at address 1025003, expected e, actual is 3
+compare error at address 102500c, expected 0, actual is c
+34:2:# end of trace
+33:4:compare  ffffff0a  0     de  de  de  0
+34:4:dump     ffffff00  100
+ffffff00
+ 00 00 00 00 00 00 00 00 00 00 00 de de de 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 81 82 92 84 85 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 aa
+34:2:TERMINATED
+35:4:copy     753ff000  0affe000  3000
+36:4:# The following compare should fail at every byte
+37:4:compare  753ffff0  0     1   2   3   4   5   6  7  8  9  a  b  c  d  e  f
+compare error at address 753ffff0, expected 0, actual is a1
+compare error at address 753ffff1, expected 1, actual is a1
+compare error at address 753ffff2, expected 2, actual is a1
+compare error at address 753ffff3, expected 3, actual is a1
+compare error at address 753ffff4, expected 4, actual is a1
+compare error at address 753ffff5, expected 5, actual is a1
+compare error at address 753ffff6, expected 6, actual is a1
+compare error at address 753ffff7, expected 7, actual is a1
+compare error at address 753ffff8, expected 8, actual is a1
+compare error at address 753ffff9, expected 9, actual is a1
+compare error at address 753ffffa, expected a, actual is a1
+compare error at address 753ffffb, expected b, actual is a1
+compare error at address 753ffffc, expected c, actual is a1
+compare error at address 753ffffd, expected d, actual is a1
+compare error at address 753ffffe, expected e, actual is a1
+compare error at address 753fffff, expected f, actual is a1
+38:4:# The following compare should succeed
+39:4:compare  754007fe  a1    a1  a2  a2
+40:4:# end of trace
+40:4:TERMINATED
