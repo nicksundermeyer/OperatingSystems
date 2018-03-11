@@ -60,7 +60,7 @@ void ProcessTrace::Execute(void) {
   // Select the command to execute
   while (ParseCommand(line, cmd, cmdArgs)) {
     if (cmd == "quota" ) {
-      CmdQuota(line, cmd, cmdArgs);    // allocate memory
+      CmdQuota(line, cmd, cmdArgs);    // set quota  
     } else if (cmd == "compare") {
       CmdCompare(line, cmd, cmdArgs);  // get and compare multiple bytes
     } else if (cmd == "put") {
@@ -85,9 +85,9 @@ void ProcessTrace::Execute(void) {
 
 bool ProcessTrace::ParseCommand(
     string &line, string &cmd, vector<uint32_t> &cmdArgs) {
-  cmdArgs.clear();
-  line.clear();
-  cmd.clear();
+    cmdArgs.clear();
+    line.clear();
+    cmd.clear();
   
   // Read next line
   if (std::getline(trace, line)) {
@@ -125,11 +125,7 @@ void ProcessTrace::CmdQuota(const string &line,
     quota = cmdArgs.at(0);
 }
 
-void ProcessTrace::CmdAlloc(uint32_t vaddr, uint32_t count) {
-  // Get arguments
-//  Addr vaddr = cmdArgs.at(0);
-//  int count = cmdArgs.at(1) / kPageSize;
-  
+void ProcessTrace::CmdAlloc(uint32_t vaddr, uint32_t count) {  
   // Switch to physical mode
   memory.get_PMCB(vmem_pmcb);
   memory.set_PMCB(pmem_pmcb);
@@ -177,13 +173,15 @@ void ProcessTrace::CmdPut(const string &line,
   uint32_t addr = cmdArgs.at(0);
   size_t num_bytes = cmdArgs.size() - 1;
   uint8_t buffer[num_bytes];
+  
   try {
     for(int i = 1; i < cmdArgs.size(); ++i) {
       buffer[i - 1] = cmdArgs.at(i);
     }
+    
     memory.put_bytes(addr, num_bytes, buffer);
+
   }  catch(PageFaultException e) {
-    PrintAndClearException("PageFaultException", e);
     
     // get pmcb to store current state of the process
     memory.get_PMCB(vmem_pmcb);
@@ -200,6 +198,7 @@ void ProcessTrace::CmdPut(const string &line,
     
     // set pmcb again to resume/stop operation
     memory.set_PMCB(vmem_pmcb);
+    
   }  catch(WritePermissionFaultException e) {
     PrintAndClearException("WritePermissionFaultException", e);
   }
@@ -230,11 +229,10 @@ void ProcessTrace::CmdCopy(const string &line,
     try {
       memory.put_bytes(dst, bytes_read, buffer);
     } catch(PageFaultException e) {
-      PrintAndClearException("PageFaultException on write", e);
       
       // get pmcb to store current state of the process
     memory.get_PMCB(vmem_pmcb);
-
+    
     if(num_pages + vmem_pmcb.remaining_count/kPageSize < quota)
     {
 	CmdAlloc(dst, vmem_pmcb.remaining_count);
@@ -265,7 +263,6 @@ void ProcessTrace::CmdFill(const string &line,
       memory.put_byte(addr++, &val);
     }
   } catch(PageFaultException e) {
-    PrintAndClearException("PageFaultException", e);
     
     // get pmcb to store current state of the process
     memory.get_PMCB(vmem_pmcb);
@@ -392,6 +389,21 @@ void ProcessTrace::AllocateAndMapPage(Addr vaddr) {
   l2_entry = allocated[0] | kPTE_PresentMask | kPTE_WritableMask;
   memory.put_bytes(l2_entry_addr, sizeof(PageTableEntry),
                  reinterpret_cast<uint8_t*> (&l2_entry));
+  
+//  if ((l2_entry & kPTE_PresentMask) != 0) {
+//      
+//      l2_entry = allocated.back() | kPTE_PresentMask | kPTE_WritableMask;
+//      memory.put_bytes(l2_entry_addr, sizeof(PageTableEntry), reinterpret_cast<uint8_t*> (&l2_entry));
+//  }
+//  else
+//  {
+//      allocator.Allocate(1, allocated);
+//      l2_entry = allocated.back() | kPTE_PresentMask | kPTE_WritableMask;
+//      memory.put_bytes(l2_entry_addr, sizeof(PageTableEntry), reinterpret_cast<uint8_t*> (&l2_entry));
+//      
+//  }
+//  
+//  memory.set_PMCB(vmem_pmcb);
 }
 
 void ProcessTrace::SetWritableStatus(Addr vaddr, bool writable) {

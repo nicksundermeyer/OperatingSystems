@@ -4,14 +4,27 @@
         <activeConfTypeElem>1</activeConfTypeElem>
         <activeConfIndexElem>0</activeConfIndexElem>
     </data>
-    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="1">
+        <file>
+            <url>PageFrameAllocator.h</url>
+            <bookmark id="1">
+                <name/>
+                <line>42</line>
+                <key/>
+            </bookmark>
+        </file>
+    </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group name="OperatingSystems"/>
         <group>
-            <file>file:/home/sundy/OperatingSystems/Program2/PageFrameAllocator.cpp</file>
-            <file>file:/home/sundy/OperatingSystems/Program2/main.cpp</file>
-            <file>file:/home/sundy/OperatingSystems/Program2/ProcessTrace.h</file>
-            <file>file:/home/sundy/OperatingSystems/Program2/ProcessTrace.cpp</file>
+            <file>file:/home/mikegoss/OS/Program1/MemAllocator.h</file>
+            <file>file:/home/mikegoss/OS/Program1/main.cpp</file>
+            <file>file:/home/mikegoss/OS/Program1/MemAllocator.cpp</file>
+        </group>
+        <group name="MemorySubsystem">
+            <file>file:/home/mikegoss/COMP3361/Code/Program2/ProcessTrace.cpp</file>
+            <file>file:/home/mikegoss/COMP3361/Code/Program2/ProcessTrace.h</file>
+            <file>file:/home/mikegoss/COMP3361/Code/Program2/PageFrameAllocator.cpp</file>
+            <file>file:/home/mikegoss/COMP3361/Code/Program2/PageFrameAllocator.h</file>
         </group>
     </open-files>
 </project-private>
