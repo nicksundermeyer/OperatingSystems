@@ -113,8 +113,11 @@ public:
    * Execute - read and process commands from trace file
    * 
    */
-  void Execute(void);
+  bool Execute(void);
   
+  void Initialize(void);
+  
+    std::string terminate_info;
 private:
   // Trace file
   std::string file_name;
@@ -122,7 +125,7 @@ private:
   long line_number;
   uint32_t quota;
   uint32_t num_pages;
-  std::string terminate_info;
+  
 
   // Memory contents
   mem::MMU &memory;

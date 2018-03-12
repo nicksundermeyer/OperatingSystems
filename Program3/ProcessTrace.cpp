@@ -33,6 +33,7 @@ ProcessTrace::ProcessTrace(MMU &memory_,
     terminate_info = "";
     num_pages = 0;
     
+    
   // Open the trace file.  Abort program if can't open.
   trace.open(file_name, std::ios_base::in);
   if (!trace.is_open()) {
@@ -45,20 +46,26 @@ ProcessTrace::~ProcessTrace() {
   trace.close();
 }
 
-void ProcessTrace::Execute(void) {
-  // Read and process commands
-  string line;                // text line read
-  string cmd;                 // command from line
-  vector<uint32_t> cmdArgs;   // arguments from line
-  
+
+void ProcessTrace::Initialize(void){
   // Set up PMCB and empty 1st level page table
   vector<Addr> allocated;
   allocator.Allocate(1, allocated);
   vmem_pmcb = mem::PMCB(true, allocated[0]);  // initialize PMCB
   memory.set_PMCB(vmem_pmcb);
-  
-  // Select the command to execute
-  while (ParseCommand(line, cmd, cmdArgs)) {
+}
+
+bool ProcessTrace::Execute(void) {
+    // Read and process commands
+    string line;                // text line read
+    string cmd;                 // command from line
+    vector<uint32_t> cmdArgs;   // arguments from line
+    
+    
+    // store return value from ParseCommand
+    int got_line = ParseCommand(line, cmd, cmdArgs);
+    
+    // Select the command to execute
     if (cmd == "quota" ) {
       CmdQuota(line, cmd, cmdArgs);    // set quota  
     } else if (cmd == "compare") {
@@ -80,7 +87,8 @@ void ProcessTrace::Execute(void) {
         exit(2);
       }
     }
-  }
+  //}
+    return got_line;
 }
 
 bool ProcessTrace::ParseCommand(
@@ -91,9 +99,9 @@ bool ProcessTrace::ParseCommand(
   
   // Read next line
   if (std::getline(trace, line)) {
-    ++line_number;
-    cout << std::dec << line_number << ":" << line << "\n";
-    
+    //++line_number;
+    //cout << std::dec << line_number << ":" << line << "\n";
+    cout << line << "\n";
     // If not comment
     if(line.at(0) != '#') {
 
@@ -258,6 +266,7 @@ void ProcessTrace::CmdFill(const string &line,
   Addr addr = cmdArgs.at(0);
   Addr num_bytes = cmdArgs.at(1);
   uint8_t val = cmdArgs.at(2);
+  
   try {
     for(int i = 0; i < num_bytes; ++i) {
       memory.put_byte(addr++, &val);
@@ -270,6 +279,8 @@ void ProcessTrace::CmdFill(const string &line,
     if(num_pages + vmem_pmcb.remaining_count/kPageSize < quota)
     {
 	CmdAlloc(addr, vmem_pmcb.remaining_count);
+        
+        
     }
     else
     {
@@ -279,6 +290,7 @@ void ProcessTrace::CmdFill(const string &line,
     
     // set pmcb again to resume/stop operation
     memory.set_PMCB(vmem_pmcb);
+    
   } catch(WritePermissionFaultException e) {
     PrintAndClearException("WritePermissionFaultException", e);
   }

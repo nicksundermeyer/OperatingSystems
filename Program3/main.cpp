@@ -10,6 +10,7 @@
  * Created on October 28, 2017, 10:08 PM
  */
 
+
 #include "PageFrameAllocator.h"
 #include "ProcessTrace.h"
 
@@ -27,14 +28,76 @@ int main(int argc, char* argv[]) {
 //    std::cerr << "usage: Lab2 trace_file\n";
 //    exit(1);
 //  }
+    
+    std::vector<ProcessTrace*> scheduler;
+    std::vector<std::string> trace_names;
+    
+    trace_names.push_back("trace4v_multi-l2-tables.txt");
+    //trace_names.push_back("trace1v.txt");
+//    trace_names.push_back("trace1v.txt");
+    
+
+    
+    uint32_t time_slice = 1;
   
-  mem::MMU memory(1024);
-  PageFrameAllocator allocator(memory);
-  //ProcessTrace trace(memory, allocator, "trace1v.txt");
-  ProcessTrace trace(memory, allocator, "trace2v_multi-page.txt");
-  trace.Execute();
+ 
+  
+    // add process traces to vector
+    for (int i=0; i<trace_names.size(); i++){
+        mem::MMU* memory = new mem::MMU(1024);
+        PageFrameAllocator* allocator = new PageFrameAllocator(*memory);       
+        scheduler.push_back(new ProcessTrace(*memory, *allocator, trace_names[i]));
+    }
+    
+    // initialize each process trace
+    for (int i=0; i<scheduler.size(); i++){  
+        scheduler[i]->Initialize();
+    }  
+    
+    uint32_t num_terminated = 0;
+    uint32_t t = 1;
+//    while (num_terminated < scheduler.size()){
+//        
+//    }
+    
+
+    
+    for(int i=0; i<100; i++){
+        for (int j=0; j<time_slice; j++){
+            std::cout << t+j << ":" << i % scheduler.size() + 1<< ":";
+            scheduler[i%scheduler.size()]->Execute();
+        }
+        t+=time_slice;
+    }
+
+    
+    
+    
+  
+  //ProcessTrace trace(memory, allocator, "trace2v_multi-page.txt");
+  
+    
+    // clean up memory
+    for (int i=0; i<scheduler.size(); i++){
+        scheduler[i]->~ProcessTrace();
+    }
+    
+   
+   
+
   return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
 
 /*
  * Hey Volkan,

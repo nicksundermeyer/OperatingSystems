@@ -27,10 +27,10 @@
             <file>file:/home/mikegoss/COMP3361/Code/Program2/PageFrameAllocator.h</file>
         </group>
         <group name="OperatingSystems">
-            <file>file:/home/ear/Desktop/school/winter_2018/OS/OperatingSystems/Program3/trace1v.txt</file>
             <file>file:/home/ear/Desktop/school/winter_2018/OS/OperatingSystems/Program3/ProcessTrace.cpp</file>
             <file>file:/home/ear/Desktop/school/winter_2018/OS/OperatingSystems/Program3/main.cpp</file>
-            <file>file:/home/ear/Desktop/school/winter_2018/OS/OperatingSystems/Program3/trace1v.txt.out</file>
+            <file>file:/home/ear/Desktop/school/winter_2018/OS/OperatingSystems/Program3/ProcessTrace.h</file>
+            <file>file:/home/ear/Desktop/school/winter_2018/OS/OperatingSystems/Program3/PageFrameAllocator.h</file>
         </group>
     </open-files>
 </project-private>
